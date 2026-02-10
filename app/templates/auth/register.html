@@ -1,0 +1,42 @@
+{% extends "layouts/base.html" %} {% block title %}Đăng ký{% endblock %} {%
+block content %}
+<section class="auth auth--register">
+  <div class="auth__container">
+    <h1 class="auth__title">Tạo tài khoản</h1>
+
+    {% if errors %}
+    <div class="alert alert--error">
+      <ul>
+        {% for err in errors %}
+        <li>{{ err }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" class="auth__form" novalidate>
+      <div class="form-group">
+        <label>Họ và tên</label>
+        <input type="text" name="full_name" required />
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" required />
+      </div>
+
+      <div class="form-group">
+        <label>Mật khẩu</label>
+        <input type="password" name="password" required />
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--block">Đăng ký</button>
+    </form>
+
+    <div class="auth__links">
+      <span>Đã có tài khoản?</span>
+      <a href="{{ url_for('auth.login') }}">Đăng nhập</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

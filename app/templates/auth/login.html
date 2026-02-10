@@ -1,0 +1,39 @@
+{% extends "layouts/base.html" %} {% block title %}Đăng nhập{% endblock %} {%
+block content %}
+<section class="auth auth--login">
+  <div class="auth__container">
+    <h1 class="auth__title">Đăng nhập</h1>
+
+    {% if error %}
+    <div class="alert alert--error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" class="auth__form" novalidate>
+      <div class="form-group">
+        <label>Email</label>
+        <input
+          type="email"
+          name="email"
+          value="{{ request.form.email or '' }}"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Mật khẩu</label>
+        <input type="password" name="password" required />
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--block">
+        Đăng nhập
+      </button>
+    </form>
+
+    <div class="auth__links">
+      <a href="{{ url_for('auth.forgot_password') }}">Quên mật khẩu?</a>
+      <span>•</span>
+      <a href="{{ url_for('auth.register') }}">Đăng ký</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

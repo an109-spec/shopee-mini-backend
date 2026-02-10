@@ -12,3 +12,5 @@ ORDER_STATUS = (
 
 PAYMENT_METHOD = ("COD", "SHOP", "QR")
 PAYMENT_STATUS = ("pending", "success", "failed")
+
+

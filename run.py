@@ -1,3 +1,4 @@
+import os 
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -6,5 +7,8 @@ app = create_app()
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port_env = int(os.environ.get("PORT", 5000))
+    print(f"--- 🚀 Ứng dụng đang khởi chạy trên port: {port_env} ---")
+    app.run(host="0.0.0.0", port=port_env)
+
 

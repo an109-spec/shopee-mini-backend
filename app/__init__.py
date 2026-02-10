@@ -2,6 +2,7 @@ import os
 from flask import Flask
 from app.config import config_by_name
 from app.extensions import init_extensions
+from app.modules.auth import auth_bp
 
 
 def create_app():
@@ -17,12 +18,15 @@ def create_app():
     init_extensions(app)
     # Register blueprints (để trống trước, thêm dần sau)
     register_blueprints(app)
+
+
     return app
+    print(app.url_map)
 
 
 def register_blueprints(app):
     # Khi chưa có module thì để trống
-    pass
+    app.register_blueprint(auth_bp)
 
 
 

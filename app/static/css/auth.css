@@ -1,0 +1,45 @@
+/* ===============================
+   Auth Layout
+================================ */
+.auth {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.auth__container {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  padding: 32px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.auth__title {
+  margin-bottom: 24px;
+  font-size: 22px;
+  text-align: center;
+}
+
+.auth__desc {
+  font-size: 14px;
+  text-align: center;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.auth__links {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.auth__links a {
+  color: #ee4d2d;
+  text-decoration: none;
+}
+
+.auth__links a:hover {
+  text-decoration: underline;
+}
