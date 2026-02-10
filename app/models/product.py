@@ -17,14 +17,14 @@ class Product(BaseModel):
     name = db.Column(db.String(150), nullable=False)
     price = db.Column(db.Numeric(12, 2), nullable=False)
     stock = db.Column(db.Integer, default=0)
-    description=db.column(db.Text)
-    qr_code=db.column(db.String(250))
+    description=db.Column(db.Text)
+    qr_code=db.Column(db.String(250))
     product_categories = db.relationship(
         "ProductCategory",
         back_populates="product",
         cascade="all, delete-orphan"
     )
-    shop_id=db.column(db.BigInteger, db.ForeignKey("shops.id"), nullable=True)
+    shop_id=db.Column(db.BigInteger, db.ForeignKey("shops.id"), nullable=True)
 class Category(BaseModel):
     __tablename__ = "categories"
 
@@ -40,5 +40,5 @@ class Category(BaseModel):
 
 class ProductImage(BaseModel):
     __tablename__="product_images"
-    product_id=db.column(db.BigInteger, db.ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
-    image_url=db.column(db.String(255), nullable=False)
+    product_id=db.Column(db.BigInteger, db.ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
+    image_url=db.Column(db.String(255), nullable=False)

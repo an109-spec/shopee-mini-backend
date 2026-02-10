@@ -14,7 +14,7 @@ block content %}
         <input
           type="email"
           name="email"
-          value="{{ request.form.email or '' }}"
+          value="{{ request.form.get('email', '') }}"
           required
         />
       </div>

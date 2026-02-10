@@ -6,7 +6,7 @@ class Cart(BaseModel):
     __tablename__ = "carts"
 
     user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"), unique=True)
-    updated_at=db.column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at=db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class CartItem(BaseModel):

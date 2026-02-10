@@ -42,16 +42,4 @@ class ConflictError(AppException):
 #Email đã tồn tại
 #Username bị trùng
 
-class AppExceptions(Exception):
-    message="application error"
-    status_code=400
-    def __init__(self, message=None, status_code=None):
-        self.message=message if message is not None else self.message
-        self.status_code=status_code if status_code is not None else self.status_code
-#với giá trị rỗng hoặc số 0 thì if vẫn mặc định là none => kiểm tra None một cách trực tiếp is not None
-        super().__init__(self.message)
-
-class ValidationError(AppException):
-    message="validation error"
-    status_code=422
 

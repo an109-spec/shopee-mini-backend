@@ -3,7 +3,7 @@ from flask import Flask
 from app.config import config_by_name
 from app.extensions import init_extensions
 from app.modules.auth import auth_bp
-
+from datetime import datetime
 
 def create_app():
     app = Flask(__name__)
@@ -18,10 +18,14 @@ def create_app():
     init_extensions(app)
     # Register blueprints (để trống trước, thêm dần sau)
     register_blueprints(app)
-
-
-    return app
+    @app.context_processor
+    def inject_globals():
+        return {
+            "current_year": datetime.now().year
+        }
     print(app.url_map)
+    return app
+
 
 
 def register_blueprints(app):

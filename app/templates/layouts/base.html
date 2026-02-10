@@ -2,18 +2,19 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>{% block title %}Shopee Style App{% endblock %}</title>
+    <title>{% block title %}MyApp{% endblock %}</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    {% block meta %}{% endblock %}
-
+    <!-- Base CSS -->
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/main.css') }}"
+      href="{{ url_for('static', filename='css/base.css') }}"
     />
+
     {% block styles %}{% endblock %}
   </head>
+
   <body>
     <header class="app-header">
       <div class="container">
@@ -21,15 +22,17 @@
       </div>
     </header>
 
-    <main class="app-main">{% block content %}{% endblock %}</main>
+    <main class="app-main">
+      <div class="container">{% block content %}{% endblock %}</div>
+    </main>
 
     <footer class="app-footer">
       <div class="container">
-        © {{ current_year }} MyApp. All rights reserved.
+        © {{ current_year or 2026 }} MyApp. All rights reserved.
       </div>
     </footer>
 
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <!-- Không load file JS không tồn tại -->
     {% block scripts %}{% endblock %}
   </body>
 </html>

@@ -15,4 +15,4 @@ class Wishlist(db.Model):
         db.ForeignKey("products.id", ondelete="CASCADE"),
         primary_key=True
     )
-    created_at = db.Column(db.DateTime, defaultt=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

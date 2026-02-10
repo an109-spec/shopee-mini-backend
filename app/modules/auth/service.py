@@ -2,7 +2,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.models import User
 from app.extensions import db
-from app.common.exceptions import BadRequestError, UnauthorizedError
+from app.common.exceptions import AppException, UnauthorizedError
 from .dto import LoginDTO, RegisterDTO
 
 
@@ -11,7 +11,7 @@ class AuthService:
     @staticmethod
     def register(dto: RegisterDTO) -> User:
         if User.query.filter_by(email=dto.email).first():
-            raise BadRequestError("Email đã tồn tại")
+            raise AppException("Email đã tồn tại")
 
         user = User(
             email=dto.email,

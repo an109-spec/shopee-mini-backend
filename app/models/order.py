@@ -10,7 +10,7 @@ class Order(BaseModel):
     status = db.Column(
         db.Enum("pending", "preparing", "shipping", "delivered", "cancelled", name="order_status")
     )
-    payment_method=db.column(db.Enum("COD", "SHOP", "QR"))
+    payment_method=db.Column(db.Enum("COD", "SHOP", "QR"))
 
 class OrderItem(BaseModel):
     __tablename__ = "order_items"
