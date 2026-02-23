@@ -1,0 +1,70 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}User Center{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="user-center">
+  <h1 class="user-center__title">Quản lý tài khoản</h1>
+
+  <section class="user-card">
+    <h2>Thông tin truy vấn</h2>
+    <div class="form-group">
+      <label for="user-id">User ID</label>
+      <input id="user-id" type="number" min="1" placeholder="Nhập user_id">
+    </div>
+    <button id="btn-load-profile" class="btn btn--primary">Tải hồ sơ</button>
+  </section>
+
+  <section class="user-card user-profile">
+    <h2>Hồ sơ cá nhân</h2>
+    <div class="user-profile__header">
+      <img id="avatar-preview" src="https://via.placeholder.com/96?text=Avatar" alt="Avatar">
+      <div>
+        <p><strong>Username:</strong> <span id="profile-username">-</span></p>
+        <p><strong>Email:</strong> <span id="profile-email">-</span></p>
+        <p><strong>Phone:</strong> <span id="profile-phone">-</span></p>
+        <p><strong>Họ tên:</strong> <span id="profile-full-name">-</span></p>
+      </div>
+    </div>
+    <button id="btn-auto-avatar" class="btn btn--primary">Tạo avatar ngẫu nhiên</button>
+  </section>
+
+  <section class="user-card">
+    <h2>Đổi avatar</h2>
+    <div class="form-group">
+      <label for="avatar-url">URL Avatar mới</label>
+      <input id="avatar-url" type="text" placeholder="https://...">
+    </div>
+    <button id="btn-change-avatar" class="btn btn--primary">Cập nhật avatar</button>
+  </section>
+
+  <section class="user-card">
+    <h2>Đổi mật khẩu</h2>
+    <div class="form-group">
+      <label for="current-password">Mật khẩu hiện tại</label>
+      <input id="current-password" type="password" placeholder="Nhập mật khẩu hiện tại">
+    </div>
+    <div class="form-group">
+      <label for="new-password">Mật khẩu mới</label>
+      <input id="new-password" type="password" placeholder="Tối thiểu 8 ký tự">
+    </div>
+    <button id="btn-change-password" class="btn btn--primary">Đổi mật khẩu</button>
+  </section>
+
+  <section class="user-card">
+    <h2>Lịch sử mua hàng</h2>
+    <button id="btn-load-orders" class="btn btn--primary">Tải lịch sử mua hàng</button>
+    <div id="orders-container" class="orders-container"></div>
+  </section>
+
+  <p id="status-message" class="status-message"></p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/user.js') }}"></script>
+{% endblock %}

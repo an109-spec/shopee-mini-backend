@@ -3,6 +3,7 @@ from flask import Flask
 from app.config import config_by_name
 from app.extensions import init_extensions
 from app.modules.auth import auth_bp
+from app.modules.user import user_bp
 from datetime import datetime
 
 def create_app():
@@ -30,7 +31,7 @@ def create_app():
 def register_blueprints(app):
     # Khi chưa có module thì để trống
     app.register_blueprint(auth_bp)
-
+    app.register_blueprint(user_bp)
 
 
 
