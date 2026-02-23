@@ -11,6 +11,9 @@ class User(BaseModel):
     password_hash = db.Column(db.String(255), nullable=False)
     avatar = db.Column(db.String(255))
     role = db.Column(db.Enum("user", "admin", "seller", name="user_roles"), default="user")
+    failed_login_attempts = db.Column(db.Integer, default=0)#số lần đăng nhập sai liên tiếp của một user.
+    last_failed_login = db.Column(db.DateTime, nullable=True)#thời điểm (timestamp) của lần đăng nhập thất bại gần nhất.
+    locked_until = db.Column(db.DateTime, nullable=True)#thời điểm kết thúc việc khóa tài khoản
 
 
 class UserProfile(db.Model):

@@ -27,7 +27,6 @@ def create_app():
     return app
 
 
-
 def register_blueprints(app):
     # Khi chưa có module thì để trống
     app.register_blueprint(auth_bp)

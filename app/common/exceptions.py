@@ -18,11 +18,20 @@ class ValidationError(AppException):
     message = "Validation error"#Lỗi xác thực dữ liệu
 #dữ liệu client gửi không hợp lệ
 #Bạn bỏ trống ô "Số điện thoại" hoặc nhập email thiếu ký tự @
+#Thiếu email/password
+
 class UnauthorizedError(AppException):
     status_code = 401
-    message = "Unauthorized"#Không có quyền truy cập
-#Người dùng chưa đăng nhập
+    message = "Unauthorized"
+
+    def __init__(self, message=None, locked_until=None):
+        super().__init__(message=message, status_code=self.status_code)#
+        self.locked_until = locked_until 
+    
+#Không có quyền truy cập
+#Người dùng chưa đăng nhập, Chưa xác thực
 #Token không tồn tại / hết hạn
+#Sai email/password
 
 class ForbiddenError(AppException):
     status_code = 403
