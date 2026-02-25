@@ -19,8 +19,16 @@ def user_center_page():
     return render_template("user/center.html")
 
 
-@user_bp.route("/avatar/auto", methods=["POST"])
+@user_bp.route("/avatar/auto", methods=["GET", "POST"])
 def auto_avatar():
+    if request.method == "GET":
+        return jsonify(
+            {
+                "message": "Dùng POST /user/avatar/auto?user_id=<id> để tạo avatar tự động",
+                "example": "/user/avatar/auto?user_id=1",
+            }
+        ), 200
+
     try:
         user_id = _resolve_user_id()
         avatar_url = UserService.ensure_auto_avatar(user_id)
