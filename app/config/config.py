@@ -2,22 +2,34 @@ import os
 from datetime import timedelta
 
 
-
 class BaseConfig:
     # ======================
     # FLASK
     # ======================
     ENV = os.getenv("FLASK_ENV", "development")
     DEBUG = False
-    SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret")
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
 
     # ======================
     # DATABASE
     # ======================
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "SQLALCHEMY_DATABASE_URI",
-        "sqlite:///shopee_mini.db" #dùng sqlite tránh sập nếu chưa cài postgresql
-    )
+    DB_USER = os.getenv("APP_DB_USER")
+    DB_PASSWORD = os.getenv("APP_DB_PASSWORD")
+    DB_NAME = os.getenv("APP_DB_NAME")
+    DB_HOST = os.getenv("DB_HOST", "localhost")
+    DB_PORT = os.getenv("DB_PORT", "5432")
+
+    @classmethod
+    def build_db_uri(cls):
+        if not all([cls.DB_USER, cls.DB_PASSWORD, cls.DB_NAME]):
+            raise RuntimeError("Database environment variables not properly set")
+
+        return (
+            f"postgresql+psycopg2://{cls.DB_USER}:{cls.DB_PASSWORD}"
+            f"@{cls.DB_HOST}:{cls.DB_PORT}/{cls.DB_NAME}"
+        )
+
+    SQLALCHEMY_DATABASE_URI = None
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_pre_ping": True
@@ -26,7 +38,7 @@ class BaseConfig:
     # ======================
     # JWT
     # ======================
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "jwt-secret")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-jwt-secret")
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(
         seconds=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", 3600))
     )
@@ -36,8 +48,8 @@ class BaseConfig:
     # ======================
     MAIL_SERVER = os.getenv("MAIL_SERVER")
     MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
-    MAIL_USE_TLS = True
-    MAIL_USE_SSL = False
+    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "True") == "True"
+    MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", "False") == "True"
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER")
@@ -48,33 +60,32 @@ class BaseConfig:
     SOCKETIO_MESSAGE_QUEUE = os.getenv("SOCKETIO_MESSAGE_QUEUE")
 
 
-class DevelopmentConfig(BaseConfig):#→ cấu hình riêng cho môi trường DEV
+class DevelopmentConfig(BaseConfig):
     ENV = "development"
     DEBUG = True
-    MAIL_USE_TLS = True
-    MAIL_USE_SSL = False
     MAIL_SUPPRESS_SEND = True
 
 
 class ProductionConfig(BaseConfig):
     ENV = "production"
     DEBUG = False
-    MAIL_USE_TLS =  False
-    MAIL_USE_SSL =  True 
+
+    @classmethod
+    def validate(cls):
+        if cls.SECRET_KEY == "dev-secret":
+            raise RuntimeError("SECRET_KEY must be set in production")
 
 
 class TestingConfig(BaseConfig):
-    ENV = "testing"#Class Attribute không phải phương thức vì k có def
+    ENV = "testing"
     TESTING = True
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     MAIL_SUPPRESS_SEND = True
 
-#Global Variable (Biến toàn cục)
+
 config_by_name = {
     "development": DevelopmentConfig,
     "production": ProductionConfig,
     "testing": TestingConfig,
 }
-#bảng ánh xạ 
-#giữa tên môi trường và Config class tương ứng

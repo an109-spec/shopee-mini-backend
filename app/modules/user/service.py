@@ -2,6 +2,7 @@ from decimal import Decimal
 from secrets import token_hex
 from urllib.parse import urlparse
 
+from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.common.exceptions import ConflictError, NotFoundError, ValidationError
@@ -14,7 +15,11 @@ class UserService:
 
     @staticmethod
     def _get_user(user_id: int) -> User:
-        user = db.session.get(User, user_id)
+        try:
+            user = db.session.get(User, user_id)
+        except SQLAlchemyError:
+            raise ValidationError("Cơ sở dữ liệu chưa được khởi tạo. Hãy tạo bảng trước khi gọi API user.")
+
         if not user:
             raise NotFoundError("Không tìm thấy người dùng")
         return user

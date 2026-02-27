@@ -1,6 +1,7 @@
 from .user import User, UserProfile
 from .otp import OTPCode
 from .product import Product, Category
+from .product import Product, Category, ProductCategory, ProductImage
 from .cart import Cart, CartItem
 from .order import Order, OrderItem, OrderTracking
 from .payment import Payment
