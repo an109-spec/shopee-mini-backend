@@ -65,7 +65,7 @@ def login():
         )
 
         AuthService.login(dto)
-        return redirect("/")
+        return redirect(url_for("user.user_center_page"))
 
     except (ValidationError, UnauthorizedError) as e:
         return render_template(

@@ -1,15 +1,12 @@
-from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone, timedelta
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import or_
 
-from app.models import User
+from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from app.common.exceptions import ConflictError, UnauthorizedError, ValidationError
 from app.extensions import db
-from app.common.exceptions import (
-    UnauthorizedError,
-    ConflictError,
-    ValidationError
-)
+from app.models import User, UserProfile
 
 from .dto import LoginDTO, RegisterDTO, RequestPasswordResetDTO, ResetPasswordDTO
 from .otp_service import OTPService
@@ -41,9 +38,31 @@ class AuthService:
         return User.query.filter(
             or_(
                 User.email == identifier,
-                User.phone == identifier
+                User.phone == identifier,
             )
         ).first()
+
+    @staticmethod
+    def _generate_username(email: str | None, phone: str | None) -> str:
+        """Sinh username từ email/phone và tự xử lý trùng."""
+        if email:
+            base_username = email.split("@", 1)[0].strip().lower()
+        elif phone:
+            base_username = phone.strip()
+        else:
+            raise ValidationError("Phải cung cấp email hoặc số điện thoại")
+
+        if not base_username:
+            raise ValidationError("Không thể tạo username hợp lệ")
+
+        candidate = base_username
+        suffix = 1
+
+        while User.query.filter_by(username=candidate).first() is not None:
+            candidate = f"{base_username}{suffix}"
+            suffix += 1
+
+        return candidate
 
     # ======================================================
     # REGISTER
@@ -51,23 +70,39 @@ class AuthService:
 
     @staticmethod
     def register(dto: RegisterDTO) -> User:
-
         if not dto.email and not dto.phone:
             raise ValidationError("Phải cung cấp email hoặc số điện thoại")
 
+        if not dto.full_name or not dto.full_name.strip():
+            raise ValidationError("Thiếu họ tên")
+
+        email = dto.email.lower().strip() if dto.email else None
+        phone = dto.phone.strip() if dto.phone else None
+
+        # Model hiện tại yêu cầu email non-null. Nếu user đăng ký bằng phone,
+        # tạo một email nội bộ để đảm bảo insert không lỗi.
+        if not email and phone:
+            email = f"{phone}@phone.local"
+
         user = User(
-            email=dto.email.lower().strip() if dto.email else None,
-            phone=dto.phone.strip() if dto.phone else None,
+            username=AuthService._generate_username(email, phone),
+            email=email,
+            phone=phone,
             password_hash=generate_password_hash(dto.password),
-            full_name=dto.full_name.strip(),
         )
+
+        profile = UserProfile(full_name=dto.full_name.strip())
 
         try:
             db.session.add(user)
+            db.session.flush()
+
+            profile.user_id = user.id
+            db.session.add(profile)
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-            raise ConflictError("Email hoặc số điện thoại đã tồn tại")
+            raise ConflictError("Email, số điện thoại hoặc username đã tồn tại")
 
         return user
 
@@ -77,7 +112,6 @@ class AuthService:
 
     @staticmethod
     def login(dto: LoginDTO) -> User:
-
         identifier = AuthService._normalize_identifier(dto.identifier)
         user = AuthService._get_user_by_identifier(identifier)
 
@@ -91,7 +125,7 @@ class AuthService:
         if user.locked_until and user.locked_until > now:
             raise UnauthorizedError(
                 message="Tài khoản bị khóa",
-                locked_until=user.locked_until
+                locked_until=user.locked_until,
             )
 
         # ===== Check password =====
@@ -118,7 +152,6 @@ class AuthService:
 
     @staticmethod
     def request_password_reset(dto: RequestPasswordResetDTO) -> None:
-
         identifier = AuthService._normalize_identifier(dto.identifier)
         user = AuthService._get_user_by_identifier(identifier)
 
@@ -135,10 +168,7 @@ class AuthService:
         # Nếu reset qua SMS
         if user.phone:
             sms_code = OTPService.create_otp(user.id, otp_type="sms")
-            SMSService.send(
-                user.phone,
-                f"Mã OTP của bạn là {sms_code}"
-            )
+            SMSService.send(user.phone, f"Mã OTP của bạn là {sms_code}")
 
     # ======================================================
     # RESET PASSWORD
@@ -146,7 +176,6 @@ class AuthService:
 
     @staticmethod
     def reset_password(dto: ResetPasswordDTO) -> None:
-
         identifier = AuthService._normalize_identifier(dto.identifier)
         user = AuthService._get_user_by_identifier(identifier)
 
@@ -157,7 +186,7 @@ class AuthService:
         is_valid = OTPService.verify_otp(
             user_id=user.id,
             code=dto.otp_code,
-            otp_type=dto.otp_type
+            otp_type=dto.otp_type,
         )
 
         if not is_valid:

@@ -14,7 +14,7 @@
     <h2>Thông tin truy vấn</h2>
     <div class="form-group">
       <label for="user-id">User ID</label>
-      <input id="user-id" type="number" min="1" placeholder="Nhập user_id">
+      <input id="user-id" type="number" min="1" placeholder="Nhập user_id" value="{{ initial_user_id or "" }}">
     </div>
     <button id="btn-load-profile" class="btn btn--primary">Tải hồ sơ</button>
   </section>

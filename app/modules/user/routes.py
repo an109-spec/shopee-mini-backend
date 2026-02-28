@@ -13,11 +13,10 @@ def _resolve_user_id() -> int:
     return user_id
 
 
-
 @user_bp.route("/center", methods=["GET"])
 def user_center_page():
-    return render_template("user/center.html")
-
+    initial_user_id = request.args.get("user_id", type=int)
+    return render_template("user/center.html", initial_user_id=initial_user_id)
 
 @user_bp.route("/avatar/auto", methods=["GET", "POST"])
 def auto_avatar():
