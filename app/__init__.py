@@ -24,9 +24,12 @@ def create_app():
     if env == "production" and hasattr(config_class, "validate"):
         config_class.validate()
 
-    # Build DB URI nếu chưa có (không phải testing)
+    # Build DB URI nếu chưa có
     if not app.config.get("SQLALCHEMY_DATABASE_URI"):
-        app.config["SQLALCHEMY_DATABASE_URI"] = config_class.build_db_uri()
+        if hasattr(config_class, "build_db_uri"):
+            app.config["SQLALCHEMY_DATABASE_URI"] = config_class.build_db_uri()
+        else:
+            raise RuntimeError("Database URI not configured")
 
     # Init extensions
     init_extensions(app)
@@ -39,7 +42,7 @@ def create_app():
     def inject_globals():
         return {"current_year": datetime.now().year}
 
-    if app.config["DEBUG"]:
+    if app.config.get("DEBUG"):
         print(app.url_map)
 
     return app
