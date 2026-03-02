@@ -2,7 +2,7 @@ import os
 from flask import Flask
 from datetime import datetime
 from app.config import config_by_name
-from app.extensions import init_extensions
+from app.extensions import init_extensions, db
 from app.modules.auth import auth_bp
 from app.modules.user import user_bp
 from app.cli import register_cli
@@ -26,13 +26,23 @@ def create_app():
 
     # Build DB URI nếu chưa có
     if not app.config.get("SQLALCHEMY_DATABASE_URI"):
-        if hasattr(config_class, "build_db_uri"):
-            app.config["SQLALCHEMY_DATABASE_URI"] = config_class.build_db_uri()
-        else:
-            raise RuntimeError("Database URI not configured")
+        app.config["SQLALCHEMY_DATABASE_URI"] = config_class.build_db_uri()
+
+    print("ENV =", env)
+    print("DATABASE URI =", app.config.get("SQLALCHEMY_DATABASE_URI"))
 
     # Init extensions
     init_extensions(app)
+
+    # ⚠️ Chỉ auto-create table khi dùng SQLite dev
+    if (
+        env == "development"
+        and str(app.config.get("SQLALCHEMY_DATABASE_URI", "")).startswith("sqlite")
+    ):
+        with app.app_context():
+            from app import models  # đảm bảo model được import
+            db.create_all()
+            print("SQLite tables created automatically")
 
     # Register blueprints
     register_blueprints(app)

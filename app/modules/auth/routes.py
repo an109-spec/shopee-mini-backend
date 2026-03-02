@@ -1,4 +1,4 @@
-from flask import request, render_template, redirect, url_for
+from flask import request, render_template, redirect, url_for,session
 from app.common.exceptions import (
     UnauthorizedError,
     ValidationError,
@@ -65,6 +65,8 @@ def login():
         )
 
         AuthService.login(dto)
+        user = AuthService.login(dto)
+        session["user_id"] = user.id
         return redirect(url_for("user.user_center_page"))
 
     except (ValidationError, UnauthorizedError) as e:
