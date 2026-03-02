@@ -7,119 +7,90 @@
 {% endblock %}
 
 {% block content %}
-<div class="user-center" data-user-id="{{ initial_user_id or "" }}">
+<div class="user-center">
   <h1 class="user-center__title">Quản lý tài khoản</h1>
-
-  <!-- ================= PROFILE ================= -->
   <section class="user-card user-profile">
     <h2>Hồ sơ cá nhân</h2>
+    <div class="profile-view" id="view-profile-section">
+      <div class="user-profile__header">
+        <img id="avatar-preview" src="https://via.placeholder.com/96?text=Avatar" alt="Avatar">
+        <div class="profile-summary">
+          <div class="profile-row"><span class="profile-label">Username</span><span id="profile-username">-</span></div>
+          <div class="profile-row"><span class="profile-label">Email</span><span id="profile-email">-</span></div>
+          <div class="profile-row"><span class="profile-label">Phone</span><span id="profile-phone">-</span></div>
+          <div class="profile-row"><span class="profile-label">Họ tên</span><span id="profile-full-name">-</span></div>
+          <div class="profile-row"><span class="profile-label">Ngày sinh</span><span id="profile-birthday">-</span></div>
+        </div>
+      </div>
 
-    <div class="user-profile__header">
-      <img
-        id="avatar-preview"
-        src="https://via.placeholder.com/96?text=Avatar"
-        alt="Avatar"
-      >
+      <div class="profile-address-block">
+        <p class="profile-label">Địa chỉ</p>
+        <div id="profile-addresses" class="address-list">-</div>
+      </div>
 
-      <div>
-        <p><strong>Username:</strong> <span id="profile-username">-</span></p>
-        <p><strong>Email:</strong> <span id="profile-email">-</span></p>
-        <p><strong>Phone:</strong> <span id="profile-phone">-</span></p>
-        <p><strong>Họ tên:</strong> <span id="profile-full-name">-</span></p>
-        <p><strong>Ngày sinh:</strong> <span id="profile-birthday">-</span></p>
+      <button id="btn-edit-profile" class="btn btn--primary">Chỉnh sửa hồ sơ</button>
+    </div>
+
+    <div class="profile-edit is-hidden" id="edit-profile-section">
+      <div class="form-group">
+        <label for="edit-username">Username</label>
+        <input id="edit-username" type="text" placeholder="Username">
+      </div>
+      <div class="form-group">
+        <label for="edit-email">Email</label>
+        <input id="edit-email" type="email" placeholder="Email">
+      </div>
+      <div class="form-group">
+        <label for="edit-phone">Số điện thoại</label>
+        <input id="edit-phone" type="text" placeholder="Số điện thoại">
+      </div>
+      <div class="form-group">
+        <label for="edit-full-name">Họ tên</label>
+        <input id="edit-full-name" type="text" placeholder="Họ tên">
+      </div>
+      <div class="form-group">
+        <label for="edit-birthday">Ngày sinh</label>
+        <input id="edit-birthday" type="date">
+      </div>
+      <div class="form-group">
+        <label for="edit-addresses">Địa chỉ (mỗi dòng 1 địa chỉ)</label>
+        <textarea id="edit-addresses" rows="3" placeholder="Ví dụ:
+123 Lê Lợi, Q1
+456 Nguyễn Huệ, Q1"></textarea>
+      </div>
+
+      <div class="profile-edit__actions">
+        <button id="btn-save-profile" class="btn btn--primary">Lưu hồ sơ</button>
+        <button id="btn-cancel-edit-profile" class="btn btn--outline">Huỷ</button>
       </div>
     </div>
+    </section>
 
-    <div class="form-group">
-      <label for="edit-username">Username</label>
-      <input id="edit-username" type="text" placeholder="Username">
-    </div>
-
-    <div class="form-group">
-      <label for="edit-email">Email</label>
-      <input id="edit-email" type="email" placeholder="Email">
-    </div>
-
-    <div class="form-group">
-      <label for="edit-phone">Số điện thoại</label>
-      <input id="edit-phone" type="text" placeholder="Số điện thoại">
-    </div>
-
-    <div class="form-group">
-      <label for="edit-full-name">Họ tên</label>
-      <input id="edit-full-name" type="text" placeholder="Họ tên">
-    </div>
-
-    <div class="form-group">
-      <label for="edit-birthday">Ngày sinh</label>
-      <input id="edit-birthday" type="date">
-    </div>
-
-    <button id="btn-save-profile" class="btn btn--primary">
-      Lưu hồ sơ
-    </button>
-
-    <button id="btn-auto-avatar" class="btn btn--primary">
-      Tạo avatar ngẫu nhiên
-    </button>
-  </section>
-
-  <!-- ================= AVATAR ================= -->
   <section class="user-card">
     <h2>Đổi avatar</h2>
-
     <div class="form-group">
-      <label for="avatar-url">URL Avatar mới</label>
-      <input id="avatar-url" type="text" placeholder="https://...">
-
       <label for="avatar-file">Chọn ảnh từ thư viện</label>
       <input id="avatar-file" type="file" accept="image/*">
     </div>
-
-    <button id="btn-change-avatar" class="btn btn--primary">
-      Cập nhật avatar
-    </button>
-
-    <button id="btn-upload-avatar" class="btn btn--primary">
-      Cập nhật avatar
-    </button>
+     <button id="btn-upload-avatar" class="btn btn--secondary">Cập nhật avatar</button>
   </section>
 
-  <!-- ================= PASSWORD ================= -->
   <section class="user-card">
     <h2>Đổi mật khẩu</h2>
-
     <div class="form-group">
       <label for="current-password">Mật khẩu hiện tại</label>
-      <input
-        id="current-password"
-        type="password"
-        placeholder="Nhập mật khẩu hiện tại"
-      >
+      <input id="current-password" type="password" placeholder="Nhập mật khẩu hiện tại">
     </div>
-
     <div class="form-group">
       <label for="new-password">Mật khẩu mới</label>
-      <input
-        id="new-password"
-        type="password"
-        placeholder="Tối thiểu 8 ký tự"
-      >
+      <input id="new-password" type="password" placeholder="Tối thiểu 8 ký tự">
     </div>
-
-    <button id="btn-change-password" class="btn btn--primary">
-      Đổi mật khẩu
-    </button>
+     <button id="btn-change-password" class="btn btn--neutral">Đổi mật khẩu</button>
   </section>
 
-  <!-- ================= PURCHASE HISTORY ================= -->
   <section class="user-card">
     <h2>Lịch sử mua hàng</h2>
-
-    <button id="btn-load-orders" class="btn btn--primary">
-      Tải lịch sử mua hàng
-    </button>
-
+    <button id="btn-load-orders" class="btn btn--outline">Tải lịch sử mua hàng</button>
     <div id="orders-container" class="orders-container"></div>
   </section>
 

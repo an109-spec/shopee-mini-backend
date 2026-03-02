@@ -11,29 +11,114 @@
 .user-card {
   background: #fff;
   border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 
+
 .user-card h2 {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   font-size: 18px;
 }
 
 .user-profile__header {
   display: flex;
-  gap: 16px;
-  align-items: center;
-  margin-bottom: 12px;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 14px;
 }
 
 .user-profile__header img {
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  border: 1px solid #ddd;
+  border: 3px solid #eee;
   object-fit: cover;
+}
+
+.profile-summary {
+  flex: 1;
+  display: grid;
+  gap: 8px;
+}
+
+.profile-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 12px;
+  border-bottom: 1px solid #f2f2f2;
+  padding: 6px 0;
+}
+
+.profile-label {
+  color: #666;
+  min-width: 90px;
+}
+
+.profile-address-block {
+  border-top: 1px solid #f2f2f2;
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+.address-list {
+  margin-top: 6px;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  padding: 8px;
+  white-space: pre-line;
+}
+
+
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: #ee4d2d;
+}
+.is-hidden {
+  display: none;
+}
+
+.profile-edit__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  transition: all 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn--secondary {
+  background: #fff;
+  color: #333;
+  border: 1px solid #d9d9d9;
+}
+
+.btn--neutral {
+  background: #f3f4f6;
+  color: #222;
+  border: 1px solid #d9d9d9;
+}
+
+.btn--outline {
+  background: #fff;
+  color: #ee4d2d;
+  border: 1px solid #ee4d2d;
 }
 
 .orders-container {

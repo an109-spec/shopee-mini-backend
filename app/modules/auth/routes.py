@@ -1,4 +1,5 @@
-from flask import request, render_template, redirect, url_for,session
+from flask import request, render_template, redirect, url_for, session
+
 from app.common.exceptions import (
     UnauthorizedError,
     ValidationError,
@@ -39,8 +40,10 @@ def register():
     )
 
     try:
-        AuthService.register(dto)
-        return redirect(url_for("auth.login"))
+        user = AuthService.register(dto)
+        session["user_id"] = user.id
+        return redirect(url_for("user.user_center_page"))
+
     except ConflictError as e:
         return render_template("auth/register.html", errors=[str(e)])
 
@@ -64,7 +67,6 @@ def login():
             password=data["password"]
         )
 
-        AuthService.login(dto)
         user = AuthService.login(dto)
         session["user_id"] = user.id
         return redirect(url_for("user.user_center_page"))
@@ -94,7 +96,7 @@ def forgot_password():
 
         return render_template(
             "auth/forgot_password.html",
-            message="Nếu tài khoản tồn tại, mã OTP đã được gửi."
+            success="Password reset instructions have been sent."
         )
 
     except ValidationError as e:
@@ -102,32 +104,30 @@ def forgot_password():
             "auth/forgot_password.html",
             error=str(e)
         )
-
-
-# ======================================================
+    # ======================================================
 # RESET PASSWORD
 # ======================================================
 
-@auth_bp.route("/reset-password", methods=["GET", "POST"])
-def reset_password():
+@auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
     if request.method == "GET":
-        return render_template("auth/reset_password.html")
+        return render_template("auth/reset_password.html", token=token)
 
     data = request.form.to_dict()
 
     try:
         dto = ResetPasswordDTO(
-            identifier=data["identifier"],
-            otp_code=data["otp_code"],
-            new_password=data["new_password"],
-            otp_type=data.get("otp_type", "email")
+            token=token,
+            new_password=data["password"]
         )
 
         AuthService.reset_password(dto)
+
         return redirect(url_for("auth.login"))
 
-    except (UnauthorizedError, ValidationError, ConflictError) as e:
+    except (ValidationError, UnauthorizedError) as e:
         return render_template(
             "auth/reset_password.html",
+            token=token,
             error=str(e)
         )

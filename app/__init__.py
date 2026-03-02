@@ -7,7 +7,6 @@ from app.modules.auth import auth_bp
 from app.modules.user import user_bp
 from app.cli import register_cli
 
-
 def create_app():
     app = Flask(__name__)
 
@@ -23,26 +22,19 @@ def create_app():
     # Validate production
     if env == "production" and hasattr(config_class, "validate"):
         config_class.validate()
-
-    # Build DB URI nếu chưa có
+    # Ưu tiên SQLALCHEMY_DATABASE_URI/DATABASE_URL; nếu chưa có thì thử build PostgreSQL từ APP_DB_*
     if not app.config.get("SQLALCHEMY_DATABASE_URI"):
         app.config["SQLALCHEMY_DATABASE_URI"] = config_class.build_db_uri()
-
-    print("ENV =", env)
-    print("DATABASE URI =", app.config.get("SQLALCHEMY_DATABASE_URI"))
 
     # Init extensions
     init_extensions(app)
 
-    # ⚠️ Chỉ auto-create table khi dùng SQLite dev
-    if (
-        env == "development"
-        and str(app.config.get("SQLALCHEMY_DATABASE_URI", "")).startswith("sqlite")
-    ):
+    # Development convenience: tự tạo bảng khi dùng SQLite local để tránh lỗi "no such table"
+    if env == "development" and str(app.config.get("SQLALCHEMY_DATABASE_URI", "")).startswith("sqlite"):
         with app.app_context():
-            from app import models  # đảm bảo model được import
+            from app import models  # noqa: F401
+
             db.create_all()
-            print("SQLite tables created automatically")
 
     # Register blueprints
     register_blueprints(app)
@@ -52,7 +44,7 @@ def create_app():
     def inject_globals():
         return {"current_year": datetime.now().year}
 
-    if app.config.get("DEBUG"):
+    if app.config["DEBUG"]:
         print(app.url_map)
 
     return app

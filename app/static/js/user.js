@@ -1,31 +1,14 @@
-/* =========================
-   STATUS
-========================= */
-
 function setStatus(message, isError = false) {
   const el = document.getElementById("status-message");
-  if (!el) return;
-
   el.textContent = message;
-  el.className = `status-message ${
-    isError ? "status-message--error" : "status-message--success"
-  }`;
+  el.className = `status-message ${isError ? "status-message--error" : "status-message--success"}`;
 }
 
-/* =========================
-   API REQUEST WRAPPER
-========================= */
-
 async function apiRequest(path, method = "GET", body = null) {
-  const options = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include", // quan trọng nếu dùng session/cookie
-  };
+  const options = { method, headers: {} };
 
   if (body) {
+    options.headers["Content-Type"] = "application/json";
     options.body = JSON.stringify(body);
   }
 
@@ -39,37 +22,46 @@ async function apiRequest(path, method = "GET", body = null) {
   return data;
 }
 
+function setEditMode(enabled) {
+  document.getElementById("view-profile-section").classList.toggle("is-hidden", enabled);
+  document.getElementById("edit-profile-section").classList.toggle("is-hidden", !enabled);
+}
+
+function renderAddresses(addresses) {
+  const box = document.getElementById("profile-addresses");
+  if (!addresses.length) {
+    box.textContent = "-";
+    return;
+  }
+  box.textContent = addresses.join("\n");
+}
+
 /* =========================
    RENDER PROFILE
 ========================= */
 
 function renderProfile(data) {
-  document.getElementById("profile-username").textContent =
-    data.username || "-";
-  document.getElementById("profile-email").textContent =
-    data.email || "-";
-  document.getElementById("profile-phone").textContent =
-    data.phone || "-";
-  document.getElementById("profile-full-name").textContent =
-    data.profile?.full_name || "-";
-  document.getElementById("profile-birthday").textContent =
-    data.profile?.birthday || "-";
+  document.getElementById("profile-username").textContent = data.username || "-";
+  document.getElementById("profile-email").textContent = data.email || "-";
+  document.getElementById("profile-phone").textContent = data.phone || "-";
+  document.getElementById("profile-full-name").textContent = data.profile?.full_name || "-";
+  document.getElementById("profile-birthday").textContent = data.profile?.birthday || "-";
 
-  document.getElementById("edit-username").value =
-    data.username || "";
-  document.getElementById("edit-email").value =
-    data.email || "";
-  document.getElementById("edit-phone").value =
-    data.phone || "";
-  document.getElementById("edit-full-name").value =
-    data.profile?.full_name || "";
-  document.getElementById("edit-birthday").value =
-    data.profile?.birthday || "";
+  const addresses = data.profile?.addresses || [];
+  renderAddresses(addresses);
+
+  document.getElementById("edit-username").value = data.username || "";
+  document.getElementById("edit-email").value = data.email || "";
+  document.getElementById("edit-phone").value = data.phone || "";
+  document.getElementById("edit-full-name").value = data.profile?.full_name || "";
+  document.getElementById("edit-birthday").value = data.profile?.birthday || "";
+  document.getElementById("edit-addresses").value = addresses.join("\n");
 
   if (data.avatar) {
     document.getElementById("avatar-preview").src = data.avatar;
   }
 }
+
 
 /* =========================
    RENDER ORDERS
@@ -86,13 +78,10 @@ function renderOrders(orders) {
 
   orders.forEach((order) => {
     const itemList = (order.items || [])
-      .map(
-        (item) =>
-          `<li>${item.product_name || "Sản phẩm"} x ${item.quantity} - ${item.price}</li>`
-      )
+      .map((item) => `<li>${item.product_name || "Sản phẩm"} x ${item.quantity} - ${item.price}</li>`)
       .join("");
 
-    const block = document.createElement("div");
+ const block = document.createElement("div");
     block.className = "order-item";
     block.innerHTML = `
       <p><strong>Đơn #${order.order_id}</strong> - ${order.status}</p>
@@ -102,11 +91,107 @@ function renderOrders(orders) {
     container.appendChild(block);
   });
 }
+document.getElementById("btn-edit-profile").addEventListener("click", () => {
+  setEditMode(true);
+});
 
+document.getElementById("btn-cancel-edit-profile").addEventListener("click", async () => {
+  await loadInitialProfile();
+  setEditMode(false);
+});
+document.getElementById("btn-save-profile").addEventListener("click", async () => {
+  try {
+    const payload = {
+      username: document.getElementById("edit-username").value,
+      email: document.getElementById("edit-email").value,
+      phone: document.getElementById("edit-phone").value,
+      full_name: document.getElementById("edit-full-name").value,
+      birthday: document.getElementById("edit-birthday").value,
+      addresses: document.getElementById("edit-addresses").value
+        .split("\n")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    };
+
+    const data = await apiRequest("/user/profile", "PATCH", payload);
+    renderProfile(data);
+    setEditMode(false);
+    setStatus("Đã cập nhật hồ sơ");
+  } catch (error) {
+    setStatus(error.message, true);
+  }
+});
+document.getElementById("btn-upload-avatar").addEventListener("click", async () => {
+  try {
+    const fileInput = document.getElementById("avatar-file");
+    const file = fileInput.files[0];
+    if (!file) {
+      throw new Error("Vui lòng chọn ảnh avatar");
+    }
+
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    const response = await fetch("/user/avatar/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Có lỗi xảy ra");
+    }
+
+    document.getElementById("avatar-preview").src = data.avatar;
+    setStatus("Đã cập nhật avatar từ thư viện ảnh");
+  } catch (error) {
+    setStatus(error.message, true);
+  }
+});
+
+document.getElementById("btn-change-password").addEventListener("click", async () => {
+  try {
+    const current_password = document.getElementById("current-password").value;
+    const new_password = document.getElementById("new-password").value;
+    const data = await apiRequest("/user/password", "PATCH", {
+      current_password,
+      new_password,
+    });
+    setStatus(data.message || "Đổi mật khẩu thành công");
+    document.getElementById("current-password").value = "";
+    document.getElementById("new-password").value = "";
+  } catch (error) {
+    setStatus(error.message, true);
+  }
+});
+
+document.getElementById("btn-load-orders").addEventListener("click", async () => {
+  try {
+    const data = await apiRequest("/user/purchase-history");
+    renderOrders(data.orders || []);
+    setStatus("Đã tải lịch sử mua hàng");
+  } catch (error) {
+    setStatus(error.message, true);
+  }
+});
+
+async function loadInitialProfile() {
+  const data = await apiRequest("/user/profile");
+  renderProfile(data);
+}
+
+(async () => {
+  try {
+    await loadInitialProfile();
+    setEditMode(false);
+  } catch (error) {
+    setStatus(error.message, true);
+  }
+})();
 /* =========================
    LOAD PROFILE
 ========================= */
-
+/*
 async function loadProfile() {
   const data = await apiRequest("/user/profile");
   renderProfile(data);
@@ -115,7 +200,7 @@ async function loadProfile() {
 /* =========================
    EVENT LISTENERS
 ========================= */
-
+/*
 document.getElementById("btn-save-profile")?.addEventListener("click", async () => {
   try {
     const payload = {
@@ -220,7 +305,7 @@ document.getElementById("btn-load-orders")?.addEventListener("click", async () =
 /* =========================
    INITIAL LOAD
 ========================= */
-
+/* 
 (async function init() {
   try {
     await loadProfile();
@@ -228,3 +313,4 @@ document.getElementById("btn-load-orders")?.addEventListener("click", async () =
     setStatus(error.message, true);
   }
 })();
+*/

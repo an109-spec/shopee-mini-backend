@@ -1,7 +1,6 @@
 from datetime import date
 from decimal import Decimal
 from hashlib import sha256
-from secrets import token_hex
 from urllib.parse import urlparse
 
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
@@ -43,17 +42,6 @@ class UserService:
         return str(value)
 
     @staticmethod
-    def _build_random_avatar_url(username: str | None = None) -> str:
-        salt = token_hex(4)
-        seed = f"{username}-{salt}" if username else salt
-
-        digest = sha256(seed.encode("utf-8")).hexdigest()
-        style = UserService.AVATAR_STYLES[
-            int(digest[0], 16) % len(UserService.AVATAR_STYLES)
-        ]
-        return f"https://api.dicebear.com/7.x/{style}/svg?seed={seed}"
-
-    @staticmethod
     def _validate_avatar_url(avatar_url: str) -> str:
         if not avatar_url or not avatar_url.strip():
             raise ValidationError("Avatar không được để trống")
@@ -78,42 +66,14 @@ class UserService:
 
         return avatar_url
 
-    # ==============================
-    # AVATAR
-    # ==============================
-
-    @staticmethod
-    def ensure_auto_avatar(user_id: int) -> str:
-        user = UserService._get_user(user_id)
-
-        if user.avatar and user.avatar.strip():
-            return user.avatar
-
-        avatar_url = UserService._build_random_avatar_url(user.username)
-
-        try:
-            user.avatar = avatar_url
-            db.session.commit()
-        except SQLAlchemyError:
-            db.session.rollback()
-            raise AppException("Không thể tạo avatar tự động", status_code=500)
-
-        return avatar_url
-
     @staticmethod
     def change_avatar(user_id: int, avatar_url: str) -> str:
         avatar_url = UserService._validate_avatar_url(avatar_url)
         user = UserService._get_user(user_id)
-
-        try:
-            user.avatar = avatar_url
-            db.session.commit()
-        except SQLAlchemyError:
-            db.session.rollback()
-            raise AppException("Không thể cập nhật avatar", status_code=500)
+        user.avatar = avatar_url
+        db.session.commit()
 
         return avatar_url
-
     # ==============================
     # PROFILE
     # ==============================
@@ -123,97 +83,88 @@ class UserService:
         user = UserService._get_user(user_id)
         profile = UserProfile.query.filter_by(user_id=user.id).first()
 
-        profile_data = None
-        if profile:
-            profile_data = {
-                "full_name": profile.full_name,
-                "address": profile.address,
-                "gender": profile.gender,
-                "birthday": profile.birthday.isoformat()
-                if profile.birthday
-                else None,
-            }
-
         return {
             "id": user.id,
             "username": user.username,
             "email": user.email,
             "phone": user.phone,
             "avatar": user.avatar,
-            "role": user.role.value
-            if hasattr(user.role, "value")
-            else user.role,
-            "profile": profile_data,
+            "role": user.role,
+            "profile": {
+                "full_name": profile.full_name if profile else None,
+                "address": profile.address if profile else None,
+                "addresses": [item for item in (profile.address or "").split("\n") if item.strip()] if profile else [],
+                "gender": profile.gender if profile else None,
+                "birthday": profile.birthday.isoformat() if profile and profile.birthday else None,
+            },
         }
 
     @staticmethod
     def update_profile(user_id: int, payload: dict) -> dict:
         user = UserService._get_user(user_id)
+        profile = UserProfile.query.filter_by(user_id=user.id).first()
 
-        try:
-            profile = UserProfile.query.filter_by(user_id=user.id).first()
-            if profile is None:
-                profile = UserProfile(user_id=user.id)
-                db.session.add(profile)
+        if profile is None:
+            profile = UserProfile(user_id=user.id)
+            db.session.add(profile)
 
-            # ---- USER FIELDS ----
+        username = (payload.get("username") or "").strip()
+        email = (payload.get("email") or "").strip().lower()
+        phone = (payload.get("phone") or "").strip()
+        full_name = (payload.get("full_name") or "").strip()
+        birthday_raw = (payload.get("birthday") or "").strip()
+        addresses_provided = "addresses" in payload
+        addresses = payload.get("addresses") if addresses_provided else None
 
-            if "username" in payload:
-                username = (payload.get("username") or "").strip()
-                if not username:
-                    raise ValidationError("Username không được để trống")
-                user.username = username
+        if username:
+            conflict = User.query.filter(User.username == username, User.id != user.id).first()
+            if conflict:
+                raise ConflictError("Username đã tồn tại")
+            user.username = username
 
-            if "email" in payload:
-                email = (payload.get("email") or "").strip().lower()
-                if not email:
-                    raise ValidationError("Email không được để trống")
-                user.email = email
+        if email:
+            conflict = User.query.filter(User.email == email, User.id != user.id).first()
+            if conflict:
+                raise ConflictError("Email đã tồn tại")
+            user.email = email
 
-            if "phone" in payload:
-                phone = (payload.get("phone") or "").strip()
-                user.phone = phone or None
+        if phone:
+            conflict = User.query.filter(User.phone == phone, User.id != user.id).first()
+            if conflict:
+                raise ConflictError("Số điện thoại đã tồn tại")
+            user.phone = phone
 
-            # ---- PROFILE FIELDS ----
+        if full_name:
+            profile.full_name = full_name
 
-            if "full_name" in payload:
-                full_name = (payload.get("full_name") or "").strip()
-                profile.full_name = full_name or None
+        if birthday_raw:
+            try:
+                profile.birthday = date.fromisoformat(birthday_raw)
+            except ValueError:
+                raise ValidationError("Ngày sinh không hợp lệ, dùng định dạng YYYY-MM-DD")
 
-            if "birthday" in payload:
-                birthday_raw = (payload.get("birthday") or "").strip()
-                if birthday_raw:
-                    try:
-                        profile.birthday = date.fromisoformat(birthday_raw)
-                    except ValueError:
-                        raise ValidationError(
-                            "Ngày sinh không hợp lệ, dùng định dạng YYYY-MM-DD"
-                        )
-                else:
-                    profile.birthday = None
+        if addresses_provided:
+            if not isinstance(addresses, list):
+                raise ValidationError("Danh sách địa chỉ không hợp lệ")
+            cleaned = [str(item).strip() for item in addresses if str(item).strip()]
+            profile.address = "\n".join(cleaned)
 
-            db.session.commit()
-
-        except IntegrityError:
-            db.session.rollback()
-            raise ConflictError(
-                "Username, email hoặc phone đã tồn tại"
-            )
-        except SQLAlchemyError:
-            db.session.rollback()
-            raise AppException("Lỗi cập nhật hồ sơ", status_code=500)
-
+        db.session.commit()
         return UserService.get_profile(user.id)
+
+    @staticmethod
+    def set_avatar_file(user_id: int, avatar_path: str) -> str:
+        user = UserService._get_user(user_id)
+        user.avatar = avatar_path
+        db.session.commit()
+        return avatar_path
 
     # ==============================
     # PASSWORD
     # ==============================
 
     @staticmethod
-    def change_password(
-        user_id: int, current_password: str, new_password: str
-    ) -> None:
-
+    def change_password(user_id: int, current_password: str, new_password: str) -> None:
         if not current_password or not new_password:
             raise ValidationError("Thiếu thông tin đổi mật khẩu")
 
@@ -226,19 +177,11 @@ class UserService:
             raise ConflictError("Mật khẩu hiện tại không đúng")
 
         if check_password_hash(user.password_hash, new_password):
-            raise ConflictError(
-                "Mật khẩu mới không được trùng mật khẩu cũ"
-            )
-
-        try:
-            user.password_hash = generate_password_hash(new_password)
-            user.failed_login_attempts = 0
-            user.locked_until = None
-            db.session.commit()
-        except SQLAlchemyError:
-            db.session.rollback()
-            raise AppException("Không thể đổi mật khẩu", status_code=500)
-
+            raise ConflictError("Mật khẩu mới không được trùng mật khẩu cũ")
+        user.password_hash = generate_password_hash(new_password)
+        user.failed_login_attempts = 0
+        user.locked_until = None
+        db.session.commit()
     # ==============================
     # PURCHASE HISTORY
     # ==============================
