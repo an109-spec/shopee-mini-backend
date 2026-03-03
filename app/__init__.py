@@ -4,6 +4,7 @@ from datetime import datetime
 from app.config import config_by_name
 from app.extensions import init_extensions, db
 from app.modules.auth import auth_bp
+from app.modules.product import product_bp
 from app.modules.user import user_bp
 from app.cli import register_cli
 from flask_mail import Mail
@@ -32,6 +33,7 @@ def create_app():
     if env == "development" and app.config["SQLALCHEMY_DATABASE_URI"].startswith("sqlite"):
         with app.app_context():
             from app import models  # noqa
+            from app.modules.product import models as product_models
             db.create_all()
 
     # Register blueprints
@@ -52,3 +54,4 @@ def create_app():
 def register_blueprints(app):
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
+    app.register_blueprint(product_bp)

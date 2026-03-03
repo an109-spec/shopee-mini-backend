@@ -9,7 +9,7 @@ class ProductCategory(db.Model):
 
     is_primary = db.Column(db.Boolean, default=False)
 
-    product = db.relationship("Product", back_populates="product_categories")
+    product = db.relationship("app.models.product.Product", back_populates="product_categories")
     category = db.relationship("Category", back_populates="product_categories")
 class Product(BaseModel):
     __tablename__ = "products"
