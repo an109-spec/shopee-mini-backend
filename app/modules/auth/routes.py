@@ -119,7 +119,6 @@ def forgot_password():
         return render_template(
             "auth/forgot_password.html",
             otp_sent=True,
-            success=f"Mã OTP đã được gửi qua {channel_text}.",
             masked_identifier=_mask_identifier(identifier),
             identifier=identifier,
             otp_type=result.delivery_channel,
@@ -151,7 +150,7 @@ def reset_password():
     otp_code = (data.get("otp_code") or "").strip()
     new_password = data.get("new_password") or ""
     confirm_password = data.get("confirm_password") or ""
-    otp_type = (data.get("otp_type") or "email").strip() or "email"
+    otp_type = "email"
 
     if new_password != confirm_password:
         return render_template(
@@ -159,6 +158,7 @@ def reset_password():
             identifier=identifier,
             error="Mật khẩu xác nhận không khớp",
         )
+
     try:
         dto = ResetPasswordDTO(
             identifier=identifier,
@@ -166,9 +166,10 @@ def reset_password():
             new_password=new_password,
             otp_type=otp_type,
         )
-        AuthService.reset_password(dto)
-        return redirect(url_for("auth.login"))
 
+        AuthService.reset_password(dto)
+
+        return redirect(url_for("auth.login"))
     except (ValidationError, UnauthorizedError, ConflictError) as e:
         return render_template(
             "auth/reset_password.html",

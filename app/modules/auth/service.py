@@ -175,12 +175,12 @@ class AuthService:
     # ======================================================
     # REQUEST PASSWORD RESET
     # ======================================================
-
-    @staticmethod
     def request_password_reset(dto: RequestPasswordResetDTO) -> RequestPasswordResetResultDTO:
         identifier = AuthService._normalize_identifier(dto.identifier)
         user = AuthService._get_user_by_identifier(identifier)
+
         expires_at = get_otp_expired_at()
+
         # Không tiết lộ user tồn tại
         if not user:
             logger.info("Password reset requested for non-existing identifier")
@@ -191,8 +191,7 @@ class AuthService:
             )
 
         is_internal_phone_email = bool(user.email and user.email.endswith("@phone.local"))
-
-        # Ưu tiên gửi email thật khi có email hợp lệ
+        # Chỉ gửi OTP qua email thật
         if user.email and not is_internal_phone_email:
             email_code = OTPService.create_otp(user, otp_type="email")
             try:
@@ -203,23 +202,13 @@ class AuthService:
             return RequestPasswordResetResultDTO(
                 otp_expires_at_iso=expires_at.isoformat(),
                 delivery_channel="email",
-                otp_preview=email_code,
-            )
-        if not user.phone:
-            logger.warning("User has neither valid email nor phone for OTP delivery. user_id=%s", user.id)
-            return RequestPasswordResetResultDTO(
-                otp_expires_at_iso=expires_at.isoformat(),
-                delivery_channel="email",
                 otp_preview=None,
             )
-
-        sms_code = OTPService.create_otp(user.id, otp_type="sms")
-        SMSService.send(user.phone, f"Mã OTP của bạn là {sms_code}")
-        logger.info("Password reset OTP sent via sms for user_id=%s", user.id)
+        logger.warning("User has no valid email for OTP delivery. user_id=%s", user.id)
         return RequestPasswordResetResultDTO(
             otp_expires_at_iso=expires_at.isoformat(),
-            delivery_channel="sms",
-            otp_preview=sms_code,
+            delivery_channel="email",
+            otp_preview=None,
         )
 
     # ======================================================
@@ -257,12 +246,13 @@ class AuthService:
             user.failed_login_attempts = 0
             user.locked_until = None
 
-            # Xoá toàn bộ OTP của user
-
             OTPCode.query.filter(
-            OTPCode.user_id == user.id,
-            OTPCode.type.in_(("email", "sms"))
-                        ).delete()
+                OTPCode.user_id == user.id,
+                OTPCode.type.in_(("email", "sms"))
+            ).delete()
+
+            db.session.commit()   # ← BẮT BUỘC
+
         except Exception as e:
             db.session.rollback()
             raise RuntimeError("Không thể cập nhật mật khẩu") from e
