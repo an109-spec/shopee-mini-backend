@@ -52,3 +52,7 @@ class ConflictError(AppException):
 #Username bị trùng
 
 
+class TooManyRequestsError(RuntimeError):
+    status_code = 429
+    def __init__(self, message="Quá nhiều yêu cầu"):
+        super().__init__(message)

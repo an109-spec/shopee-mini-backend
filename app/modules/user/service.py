@@ -3,7 +3,7 @@ from decimal import Decimal
 from hashlib import sha256
 from urllib.parse import urlparse
 
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.common.exceptions import (

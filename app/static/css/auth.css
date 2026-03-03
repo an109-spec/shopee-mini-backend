@@ -1,24 +1,59 @@
-/* =============================== Auth Layout ================================ */ 
-.auth { min-height: 80vh; 
-  display: flex; 
-  justify-content: center; 
-  align-items: center; } 
-.auth__container { width: 100%; 
-  max-width: 420px; 
-  background: #fff; 
-  padding: 32px; 
-  border-radius: 6px; 
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); } 
-.auth__title { text-align: center; 
-  font-size: 22px; 
-  margin-bottom: 24px; } 
-.auth__desc { text-align: center; 
-  font-size: 14px; 
+/* =============================== Auth Layout ================================ */
+.auth { min-height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center; }
+.auth__container { width: 100%;
+  max-width: 420px;
+  background: #fff;
+  padding: 32px;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); }
+.auth__title { text-align: center;
+  font-size: 22px;
+  margin-bottom: 24px; }
+.auth__desc { text-align: center;
+  font-size: 14px;
   color: #666;
-   margin-bottom: 20px; } 
-.auth__links { margin-top: 20px; 
+   margin-bottom: 20px; }
+.auth__links { margin-top: 16px;
   text-align: center;
-   font-size: 14px; } 
+  font-size: 14px; }
 .auth__links a { color: #ee4d2d;
-   text-decoration: none; } 
+  text-decoration: none; }
 .auth__links a:hover { text-decoration: underline; }
+
+.auth__meta {
+  margin-bottom: 12px;
+  color: #4d4d4d;
+  font-size: 14px;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 6px;
+  color: #777;
+  font-size: 12px;
+}
+
+.otp-timer {
+  margin: 8px 0 14px;
+  font-size: 12px;
+  color: #5f6368;
+}
+
+.otp-timer__value {
+  font-variant-numeric: tabular-nums;
+}
+
+.otp-timer--warning {
+  color: #8a6106;
+}
+
+.otp-timer--expired {
+  color: #9a2222;
+}
+
+.auth__resend-form {
+  margin: 0;
+}

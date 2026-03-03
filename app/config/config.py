@@ -10,26 +10,25 @@ class BaseConfig:
     # ======================
     # DATABASE
     # ======================
+
     DB_USER = os.getenv("APP_DB_USER")
     DB_PASSWORD = os.getenv("APP_DB_PASSWORD")
     DB_NAME = os.getenv("APP_DB_NAME")
     DB_HOST = os.getenv("DB_HOST", "localhost")
     DB_PORT = os.getenv("DB_PORT", "5432")
 
-    @classmethod
-    def build_db_uri(cls):
-        if not all([cls.DB_USER, cls.DB_PASSWORD, cls.DB_NAME]):
-            raise RuntimeError("Database environment variables not properly set")
-
-        return (
-            f"postgresql+psycopg2://{cls.DB_USER}:{cls.DB_PASSWORD}"
-            f"@{cls.DB_HOST}:{cls.DB_PORT}/{cls.DB_NAME}"
+    # Build URI nếu đủ biến
+    _BUILT_URI = None
+    if all([DB_USER, DB_PASSWORD, DB_NAME]):
+        _BUILT_URI = (
+            f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}"
+            f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
         )
 
-    # Ưu tiên biến môi trường
     SQLALCHEMY_DATABASE_URI = (
         os.getenv("SQLALCHEMY_DATABASE_URI")
         or os.getenv("DATABASE_URL")
+        or _BUILT_URI
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -40,6 +39,7 @@ class BaseConfig:
     # ======================
     # JWT
     # ======================
+
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-jwt-secret")
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(
         seconds=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", 3600))
@@ -48,6 +48,7 @@ class BaseConfig:
     # ======================
     # MAIL
     # ======================
+
     MAIL_SERVER = os.getenv("MAIL_SERVER")
     MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
     MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "True") == "True"
@@ -59,34 +60,28 @@ class BaseConfig:
     # ======================
     # SOCKET.IO
     # ======================
+
     SOCKETIO_MESSAGE_QUEUE = os.getenv("SOCKETIO_MESSAGE_QUEUE")
 
 
 class DevelopmentConfig(BaseConfig):
-    ENV = "development"
     DEBUG = True
     MAIL_SUPPRESS_SEND = True
 
-    SQLALCHEMY_DATABASE_URI = (
-        BaseConfig.SQLALCHEMY_DATABASE_URI
-        or "sqlite:///shopee_mini.db"
-    )
+    # Nếu không set PostgreSQL thì fallback SQLite (DEV ONLY)
+    if not BaseConfig.SQLALCHEMY_DATABASE_URI:
+        SQLALCHEMY_DATABASE_URI = "sqlite:///shopee_mini.db"
 
 
 class ProductionConfig(BaseConfig):
-    ENV = "production"
     DEBUG = False
 
-    @classmethod
-    def validate(cls):
-        if cls.SECRET_KEY == "dev-secret":
-            raise RuntimeError("SECRET_KEY must be set in production")
+    if not BaseConfig.SQLALCHEMY_DATABASE_URI:
+        raise RuntimeError("Production requires DATABASE configuration")
 
 
 class TestingConfig(BaseConfig):
-    ENV = "testing"
     TESTING = True
-    DEBUG = False
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     MAIL_SUPPRESS_SEND = True
 

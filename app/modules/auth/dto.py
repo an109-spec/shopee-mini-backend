@@ -27,3 +27,8 @@ class ResetPasswordDTO:
     otp_code: str
     new_password: str
     otp_type: str = "email"   # mặc định email, có thể là "sms"
+@dataclass
+class RequestPasswordResetResultDTO:
+    otp_expires_at_iso: str
+    delivery_channel: str
+    otp_preview: Optional[str] = None

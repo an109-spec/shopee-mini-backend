@@ -1,6 +1,5 @@
 from pathlib import Path
 from uuid import uuid4
-from flask import current_app
 from flask import jsonify, render_template, request, session, url_for, redirect
 from werkzeug.utils import secure_filename
 
@@ -99,8 +98,8 @@ def change_password():
         new_password = payload.get("new_password")
         if not current_password or not new_password:
             raise AppException("Thiếu thông tin mật khẩu", 400)
-        if len(new_password) < 6:
-            raise AppException("Mật khẩu mới quá ngắn", 400)
+        if len(new_password) < 8:
+            raise AppException("Mật khẩu mới tối thiểu 8 ký tự", 400)
         UserService.change_password(
             user_id=user_id,
             current_password=current_password,
