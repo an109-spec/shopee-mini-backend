@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, timedelta
-
+import logging
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -24,6 +24,8 @@ from .sms_service import SMSService
 from .mail_service import MailService
 from flask_mail import Message
 from app.extensions.mail import mail
+from .email_service import EmailService
+logger = logging.getLogger(__name__)
 class AuthService:
 
     # ======================================================
@@ -181,28 +183,44 @@ class AuthService:
         expires_at = get_otp_expired_at()
         # Không tiết lộ user tồn tại
         if not user:
+            logger.info("Password reset requested for non-existing identifier")
             return RequestPasswordResetResultDTO(
                 otp_expires_at_iso=expires_at.isoformat(),
                 delivery_channel="email",
                 otp_preview=None,
             )
 
-        if user.email:
+        is_internal_phone_email = bool(user.email and user.email.endswith("@phone.local"))
+
+        # Ưu tiên gửi email thật khi có email hợp lệ
+        if user.email and not is_internal_phone_email:
             email_code = OTPService.create_otp(user, otp_type="email")
-            print(f"[EMAIL OTP] {email_code}")
+            try:
+                EmailService.send_otp(user.email, email_code)
+                logger.info("Password reset OTP sent via email for user_id=%s", user.id)
+            except Exception as exc:
+                logger.exception("Failed to send OTP email for user_id=%s: %s", user.id, exc)
             return RequestPasswordResetResultDTO(
                 otp_expires_at_iso=expires_at.isoformat(),
                 delivery_channel="email",
                 otp_preview=email_code,
             )
+        if not user.phone:
+            logger.warning("User has neither valid email nor phone for OTP delivery. user_id=%s", user.id)
+            return RequestPasswordResetResultDTO(
+                otp_expires_at_iso=expires_at.isoformat(),
+                delivery_channel="email",
+                otp_preview=None,
+            )
+
         sms_code = OTPService.create_otp(user.id, otp_type="sms")
         SMSService.send(user.phone, f"Mã OTP của bạn là {sms_code}")
+        logger.info("Password reset OTP sent via sms for user_id=%s", user.id)
         return RequestPasswordResetResultDTO(
             otp_expires_at_iso=expires_at.isoformat(),
             delivery_channel="sms",
             otp_preview=sms_code,
         )
-        
 
     # ======================================================
     # RESET PASSWORD

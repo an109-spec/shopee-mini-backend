@@ -56,7 +56,7 @@ class BaseConfig:
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER")
-
+    MAIL_SUPPRESS_SEND = os.getenv("MAIL_SUPPRESS_SEND", "False") == "True"
     # ======================
     # SOCKET.IO
     # ======================
@@ -66,7 +66,7 @@ class BaseConfig:
 
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
-    MAIL_SUPPRESS_SEND = True
+    #MAIL_SUPPRESS_SEND = True
 
     # Nếu không set PostgreSQL thì fallback SQLite (DEV ONLY)
     if not BaseConfig.SQLALCHEMY_DATABASE_URI:
