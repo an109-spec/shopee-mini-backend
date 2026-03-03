@@ -69,10 +69,14 @@ def register():
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        return render_template("auth/login.html")
+        return render_template(
+            "auth/login.html",
+            next_url=request.args.get("next"),
+        )
+
 
     data = request.form.to_dict()
-
+    next_url = data.get("next") or request.args.get("next")
     try:
         validate_login(data)
 
@@ -83,13 +87,14 @@ def login():
 
         user = AuthService.login(dto)
         session["user_id"] = user.id
-        return redirect(url_for("user.user_center_page"))
+        return redirect(next_url or url_for("user.user_center_page"))
 
     except (ValidationError, UnauthorizedError) as e:
         return render_template(
             "auth/login.html",
             error=str(e),
             locked_until=getattr(e, "locked_until", None),
+            next_url=next_url,
         )
 
 # ======================================================

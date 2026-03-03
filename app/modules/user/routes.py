@@ -19,7 +19,7 @@ def _resolve_user_id() -> int:
 @user_bp.route("/center", methods=["GET"])
 def user_center_page():
     if not session.get("user_id"):
-        return redirect(url_for("auth.login"))
+        return redirect(url_for("auth.login", next=request.url))
     return render_template("user/center.html")
 
 
