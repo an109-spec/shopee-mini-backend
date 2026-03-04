@@ -1,0 +1,3 @@
+.review-item { border-bottom: 1px solid #eee; padding: 10px 0; }
+.review-item__head { display: flex; justify-content: space-between; }
+.review-form { display: grid; gap: 8px; margin: 12px 0; }

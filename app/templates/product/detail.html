@@ -1,0 +1,37 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Chi tiết sản phẩm{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/product/product_detail.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/product/product_card.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/product/review.css') }}">
+{% endblock %}
+
+{% block content %}
+<section id="product-detail-page" data-product-id="{{ product_id or '' }}" data-endpoint-base="/products">
+  <div id="product-detail"></div>
+
+  <h3>Sản phẩm liên quan</h3>
+  <div id="related-products" class="product-grid"></div>
+
+  <h3>Đánh giá</h3>
+  <div id="review-list"></div>
+
+  <form id="review-form" class="review-form">
+    <input type="number" name="user_id" placeholder="User ID" required min="1">
+    <input type="number" name="rating" placeholder="Rating (1-5)" required min="1" max="5">
+    <textarea name="comment" placeholder="Nội dung đánh giá"></textarea>
+    <button type="submit" class="btn btn--primary">Gửi đánh giá</button>
+  </form>
+
+  <button id="open-qr" class="btn btn--outline">Xem QR</button>
+  {% include "product/components/qr_modal.html" %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/product/review.js') }}"></script>
+<script src="{{ url_for('static', filename='js/product/qr.js') }}"></script>
+<script src="{{ url_for('static', filename='js/product/product_detail.js') }}"></script>
+{% endblock %}

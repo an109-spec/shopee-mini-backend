@@ -1,0 +1,21 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Tìm kiếm sản phẩm{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/product/product_list.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/product/product_card.css') }}">
+{% endblock %}
+
+{% block content %}
+<section id="product-search-page" data-endpoint-products="/products">
+  <h1>Tìm kiếm</h1>
+  <input id="search-keyword" placeholder="Nhập từ khóa sản phẩm...">
+  <button id="search-button" class="btn btn--primary">Tìm</button>
+  <div id="search-result" class="product-grid"></div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/product/search.js') }}"></script>
+{% endblock %}

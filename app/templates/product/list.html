@@ -1,0 +1,32 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Danh sách sản phẩm{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/product/product_list.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/product/product_card.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/product/filter.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="product-page" id="product-page" data-endpoint-products="/products">
+  <h1>Sản phẩm</h1>
+
+  {% include "product/components/product_filter.html" %}
+  {% include "product/components/product_sort.html" %}
+
+  <div class="product-grid" id="product-list"></div>
+
+  <div class="pagination" id="product-pagination">
+    <button id="prev-page" class="btn btn--outline">Trước</button>
+    <span id="page-info">Trang 1</span>
+    <button id="next-page" class="btn btn--outline">Sau</button>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/product/filter.js') }}"></script>
+<script src="{{ url_for('static', filename='js/product/sort.js') }}"></script>
+<script src="{{ url_for('static', filename='js/product/product_list.js') }}"></script>
+{% endblock %}
