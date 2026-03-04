@@ -1,10 +1,11 @@
-from flask import jsonify, request
+from flask import jsonify, request, send_file
 
 from app.common.exceptions import AppException, ValidationError
 
 from . import product_bp
 from .dto import ProductCreateDTO, ProductUpdateDTO, ReviewCreateDTO
 from .service import ProductService
+from .qr_service import export_qr_png, generate_product_qr_by_id
 
 
 def _parse_pagination() -> tuple[int, int]:
@@ -110,5 +111,15 @@ def related_products(id: int):
     try:
         items = ProductService.get_related_products(id)
         return jsonify({"items": items, "total": len(items), "page": 1, "per_page": len(items)}), 200
+    except AppException as e:
+        return jsonify({"error": str(e)}), e.status_code
+
+
+@product_bp.route("/products/<int:id>/qr", methods=["GET"])
+def get_product_qr(id: int):
+    try:
+        qr_data = generate_product_qr_by_id(id)
+        png_stream = export_qr_png(qr_data)
+        return send_file(png_stream, mimetype="image/png")
     except AppException as e:
         return jsonify({"error": str(e)}), e.status_code
