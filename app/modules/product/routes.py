@@ -1,4 +1,4 @@
-from flask import jsonify, request, send_file
+from flask import jsonify, request, send_file, render_template
 
 from app.common.exceptions import AppException, ValidationError
 
@@ -6,6 +6,21 @@ from . import product_bp
 from .dto import ProductCreateDTO, ProductUpdateDTO, ReviewCreateDTO
 from .service import ProductService
 from .qr_service import export_qr_png, generate_product_qr_by_id
+
+
+@product_bp.route("/shop", methods=["GET"])
+def shop_page():
+    return render_template("product/list.html")
+
+
+@product_bp.route("/shop/<int:id>", methods=["GET"])
+def shop_detail_page(id: int):
+    return render_template("product/detail.html", product_id=id)
+
+
+@product_bp.route("/shop/search", methods=["GET"])
+def shop_search_page():
+    return render_template("product/search.html")
 
 
 def _parse_pagination() -> tuple[int, int]:
