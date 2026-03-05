@@ -1,0 +1,27 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Payment{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/payment.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="payment-container">
+
+<h2>Chọn phương thức thanh toán</h2>
+
+<p>Đơn hàng #{{ order.id }}</p>
+
+<div class="payment-methods">
+
+<a href="/payment/create/{{ order.id }}" class="payment-btn">
+Thanh toán
+</a>
+
+</div>
+
+</div>
+
+{% endblock %}

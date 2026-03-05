@@ -1,0 +1,41 @@
+.payment-container{
+max-width:600px;
+margin:auto;
+text-align:center;
+}
+
+.payment-methods{
+margin-top:30px;
+}
+
+.payment-btn{
+display:inline-block;
+padding:15px 25px;
+background:#3498db;
+color:white;
+text-decoration:none;
+border-radius:6px;
+}
+
+.qr-container{
+text-align:center;
+margin-top:40px;
+}
+
+.qr-image{
+width:250px;
+margin:20px 0;
+}
+
+.payment-success{
+text-align:center;
+margin-top:40px;
+}
+
+.btn-view-order{
+padding:12px 20px;
+background:#2ecc71;
+color:white;
+text-decoration:none;
+border-radius:6px;
+}

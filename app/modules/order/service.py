@@ -71,8 +71,6 @@ class OrderService:
         order.total_price = total
         db.session.commit()
 
-        apply_transition(order, OrderStatus.CONFIRMED)
-
         session.pop(OrderService.SESSION_KEY, None)
 
         return order

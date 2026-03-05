@@ -1,0 +1,27 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}QR Payment{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/payment.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="qr-container">
+
+<h2>Quét QR để thanh toán</h2>
+
+<img src="{{ qr_url }}" class="qr-image">
+
+<p>Order #{{ order.id }}</p>
+
+<button id="confirm-payment-btn" data-order="{{ order.id }}">
+Tôi đã thanh toán
+</button>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/payment.js') }}"></script>
+
+{% endblock %}

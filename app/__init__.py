@@ -8,6 +8,7 @@ from app.modules.product import product_bp
 from app.modules.cart import cart_bp
 from app.modules.user import user_bp
 from app.modules.order import order_bp
+from app.modules.payment import payment_bp
 from app.cli import register_cli
 from flask_mail import Mail
 from flask_migrate import Migrate
@@ -59,3 +60,4 @@ def register_blueprints(app):
     app.register_blueprint(product_bp)
     app.register_blueprint(cart_bp)
     app.register_blueprint(order_bp)
+    app.register_blueprint(payment_bp)

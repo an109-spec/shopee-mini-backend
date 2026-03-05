@@ -1,0 +1,21 @@
+{% extends "layouts/base.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/payment.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="payment-success">
+
+<h2>Thanh toán thành công</h2>
+
+<p>Đơn hàng #{{ order.id }} đã được xác nhận.</p>
+
+<a href="/order/{{ order.id }}" class="btn-view-order">
+Xem đơn hàng
+</a>
+
+</div>
+
+{% endblock %}
