@@ -1,0 +1,11 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+
+<h2>Chi tiết đơn hàng #{{ order.order_code }}</h2>
+
+{% include "order/components/order_item_table.html" %}
+
+<h3>Tiến trình đơn hàng</h3>
+{% include "order/components/order_timeline.html" %}
+
+{% endblock %}

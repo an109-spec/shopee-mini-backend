@@ -1,0 +1,11 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/order.css') }}">
+
+<div class="order-container">
+    <h2>Tracking Order #{{ order.code }}</h2>
+
+    {% include "order/components/tracking_progress.html" %}
+
+</div>
+{% endblock %}

@@ -19,8 +19,5 @@ class BaseModel(db.Model):
 def assign_bigint_id(mapper, connection, target):
     if getattr(target, "id", None) is not None:
         return
-
-
-
     max_id = connection.execute(select(func.max(target.__table__.c.id))).scalar()
     target.id = (max_id or 0) + 1

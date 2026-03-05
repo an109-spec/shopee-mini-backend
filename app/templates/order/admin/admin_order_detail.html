@@ -1,0 +1,19 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/order.css') }}">
+
+<div class="order-container">
+    <h2>Order #{{ order.code }}</h2>
+
+    <p>User: {{ order.user.email }}</p>
+
+    {% include "order/components/order_status_badge.html" %}
+
+    {% include "order/components/order_item_table.html" %}
+
+    <a href="{{ url_for('admin.update_status', id=order.id) }}" 
+       class="btn btn-primary">
+       Update Status
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+<div class="cart-summary">
+    <p>Subtotal: {{ summary.subtotal }} đ</p>
+    <p>Discount: {{ summary.discount }} đ</p>
+    <h3>Total: {{ summary.total }} đ</h3>
+
+    <form action="{{ url_for('cart.clear') }}" method="POST">
+        <button type="submit">Clear Cart</button>
+    </form>
+
+    <a href="/order/checkout" class="checkout-btn">Checkout</a>
+</div>

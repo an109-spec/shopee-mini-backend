@@ -1,0 +1,18 @@
+<div class="cart-item">
+    <img src="{{ item.thumbnail }}" width="80">
+
+    <div class="info">
+        <h4>{{ item.name }}</h4>
+        <p>{{ item.price }} đ</p>
+
+        <form action="{{ url_for('cart.update') }}" method="POST">
+            <input type="hidden" name="product_id" value="{{ item.product_id }}">
+            <input type="number" name="quantity" value="{{ item.quantity }}" min="1">
+            <button type="submit">Update</button>
+        </form>
+
+        <form action="{{ url_for('cart.remove', product_id=item.product_id) }}" method="POST">
+            <button type="submit">Remove</button>
+        </form>
+    </div>
+</div>

@@ -5,7 +5,9 @@ from app.config import config_by_name
 from app.extensions import init_extensions, db
 from app.modules.auth import auth_bp
 from app.modules.product import product_bp
+from app.modules.cart import cart_bp
 from app.modules.user import user_bp
+from app.modules.order import order_bp
 from app.cli import register_cli
 from flask_mail import Mail
 from flask_migrate import Migrate
@@ -55,3 +57,5 @@ def register_blueprints(app):
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(product_bp)
+    app.register_blueprint(cart_bp)
+    app.register_blueprint(order_bp)

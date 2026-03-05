@@ -1,0 +1,12 @@
+<div class="timeline">
+    {% for step in tracking_steps %}
+    <div class="timeline-item">
+        <strong>{{ step.label }}</strong>
+        {% if step.completed %}
+            <span style="color:green;">✔ Completed</span>
+        {% else %}
+            <span style="color:#aaa;">Pending</span>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>

@@ -1,0 +1,52 @@
+/* static/css/order.css */
+
+.order-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.order-table th,
+.order-table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.badge {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-pending { background: #facc15; }
+.badge-confirmed { background: #60a5fa; }
+.badge-preparing { background: #a78bfa; }
+.badge-shipping { background: #38bdf8; }
+.badge-delivered { background: #22c55e; color: white; }
+.badge-cancelled { background: #ef4444; color: white; }
+
+.timeline {
+    list-style: none;
+    padding: 0;
+}
+
+.timeline li {
+    margin-bottom: 10px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.timeline li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    background: #ccc;
+    border-radius: 50%;
+}
+
+.timeline li.active::before {
+    background: #22c55e;
+}

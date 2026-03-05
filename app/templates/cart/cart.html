@@ -1,0 +1,30 @@
+{% extends "layouts/base.html" %}
+{% block title %}Cart{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h2>Your Cart</h2>
+
+{% if cart.items %}
+    <div class="cart-container">
+        <div class="cart-items">
+           {% for item in cart["items"].values() %}
+                {% include "cart/_cart_item.html" %}
+            {% endfor %}
+        </div>
+
+        {% include "cart/_cart_summary.html" %}
+    </div>
+{% else %}
+    <p>Your cart is empty.</p>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+{% endblock %}
