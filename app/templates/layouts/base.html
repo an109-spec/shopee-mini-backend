@@ -13,6 +13,7 @@
 
 <body>
 
+{% block header %}
 <header class="app-header">
   <div class="container">
     <a href="/" class="app-logo">MyApp</a>
@@ -24,6 +25,7 @@
     {% endif %}
   </div>
 </header>
+{% endblock %}
 
 <main class="app-main">
   <div class="container">
@@ -42,11 +44,13 @@
   </div>
 </main>
 
+{% block footer %}
 <footer class="app-footer">
   <div class="container">
     © {{ current_year or 2026 }} MyApp
   </div>
 </footer>
+{% endblock %}
 
 <script src="{{ url_for('static', filename='js/base.js') }}"></script>
 {% block scripts %}{% endblock %}

@@ -19,6 +19,7 @@ from app.modules.chat import chat_bp
 from app.modules.admin import admin_bp
 from app.modules.audit import audit_bp
 from app.modules.promotion import promotion_bp 
+from app.modules.home import home_bp
 
 from app.cli import register_cli
 
@@ -74,3 +75,4 @@ def register_blueprints(app):
     app.register_blueprint(promotion_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(audit_bp)
+    app.register_blueprint(home_bp)

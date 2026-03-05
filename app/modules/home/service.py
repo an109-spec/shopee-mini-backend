@@ -1,0 +1,161 @@
+from datetime import datetime, timezone
+from decimal import Decimal
+
+from sqlalchemy import func
+from sqlalchemy.exc import SQLAlchemyError
+
+from app.models import Category, FlashSale, OrderItem, Product
+
+
+class HomeService:
+    @staticmethod
+    def _to_float(value: Decimal | None) -> float:
+        if value is None:
+            return 0.0
+        return float(value)
+
+    @staticmethod
+    def _product_card_payload(product: Product, sold_count: int = 0) -> dict:
+        image_url = product.thumbnail or "https://via.placeholder.com/320x320?text=Shopee+Mini"
+        return {
+            "id": product.id,
+            "name": product.name,
+            "price": HomeService._to_float(product.price),
+            "rating": 4.7,
+            "sold": int(sold_count),
+            "image": image_url,
+        }
+
+    @staticmethod
+    def _fallback_context() -> dict:
+        sample_products = [
+            {
+                "id": i,
+                "name": f"Sản phẩm gợi ý {i}",
+                "price": 199000 + i * 5000,
+                "rating": 4.6,
+                "sold": 120 + i * 3,
+                "image": "https://via.placeholder.com/320x320?text=Shopee+Mini",
+            }
+            for i in range(1, 9)
+        ]
+        return {
+            "search_suggestions": ["điện thoại", "tai nghe", "quạt mini", "bàn phím cơ"],
+            "hero_banners": [
+                {
+                    "title": "Sale 50%",
+                    "subtitle": "Săn deal cực sốc hôm nay",
+                    "link": "/shop",
+                    "variant": "main",
+                },
+                {
+                    "title": "Free ship toàn quốc",
+                    "subtitle": "Áp dụng cho đơn từ 0đ",
+                    "link": "/shop",
+                    "variant": "small",
+                },
+                {
+                    "title": "Flash sale mỗi ngày",
+                    "subtitle": "Giảm sâu theo khung giờ",
+                    "link": "/shop",
+                    "variant": "small",
+                },
+            ],
+            "feature_items": [
+                {"icon": "💥", "label": "Deal 1K", "link": "#"},
+                {"icon": "⚡", "label": "Flash Sale", "link": "#"},
+                {"icon": "🚚", "label": "Freeship", "link": "#"},
+                {"icon": "🏬", "label": "Mall", "link": "#"},
+                {"icon": "🎟️", "label": "Voucher", "link": "#"},
+            ],
+            "categories": [
+                {"name": "Phone"}, {"name": "Laptop"}, {"name": "Tablet"}, {"name": "Camera"},
+                {"name": "Audio"}, {"name": "Watch"}, {"name": "Gaming"}, {"name": "Accessories"},
+                {"name": "SmartHome"}, {"name": "Gia dụng"}, {"name": "Thời trang"}, {"name": "Sức khỏe"},
+                {"name": "Mẹ & Bé"}, {"name": "Nhà cửa"}, {"name": "Sách"}, {"name": "Thể thao"},
+            ],
+            "flash_sale": {
+                "ends_at_iso": datetime.now(timezone.utc).isoformat(),
+                "items": sample_products[:4],
+            },
+            "top_search_items": sample_products[:4],
+            "recommended_items": sample_products,
+            "promotion_banners": [
+                {"title": "Sale Laptop 30%", "subtitle": "Hiệu năng cao giá tốt", "link": "/shop"},
+                {"title": "Phụ kiện gaming", "subtitle": "Combo gear siêu hời", "link": "/shop"},
+            ],
+        }
+
+    @staticmethod
+    def build_home_context() -> dict:
+        base = HomeService._fallback_context()
+        now = datetime.now(timezone.utc)
+
+        try:
+            categories = Category.query.order_by(Category.name.asc()).limit(16).all()
+            if categories:
+                base["categories"] = [{"name": c.name} for c in categories]
+
+            sold_subquery = (
+                OrderItem.query.with_entities(
+                    OrderItem.product_id.label("product_id"),
+                    func.coalesce(func.sum(OrderItem.quantity), 0).label("sold"),
+                )
+                .group_by(OrderItem.product_id)
+                .subquery()
+            )
+
+            top_rows = (
+                Product.query
+                .outerjoin(sold_subquery, Product.id == sold_subquery.c.product_id)
+                .add_columns(func.coalesce(sold_subquery.c.sold, 0).label("sold"))
+                .order_by(func.coalesce(sold_subquery.c.sold, 0).desc(), Product.created_at.desc())
+                .limit(8)
+                .all()
+            )
+
+            if top_rows:
+                top_cards = [
+                    HomeService._product_card_payload(product, sold_count=sold)
+                    for product, sold in top_rows
+                ]
+                base["top_search_items"] = top_cards[:4]
+                base["recommended_items"] = top_cards
+
+            flash_sales = (
+                FlashSale.query
+                .filter(
+                    FlashSale.is_active.is_(True),
+                    FlashSale.start_time <= now,
+                    FlashSale.end_time >= now,
+                )
+                .order_by(FlashSale.end_time.asc())
+                .limit(4)
+                .all()
+            )
+
+            flash_cards = []
+            flash_end = None
+            for sale in flash_sales:
+                product = Product.query.get(sale.product_id)
+                if not product:
+                    continue
+                sold_count = sale.sold_count or 0
+                flash_cards.append(
+                    {
+                        **HomeService._product_card_payload(product, sold_count=sold_count),
+                        "sale_price": HomeService._to_float(sale.discount_price),
+                    }
+                )
+                if flash_end is None or sale.end_time < flash_end:
+                    flash_end = sale.end_time
+
+            if flash_cards:
+                base["flash_sale"]["items"] = flash_cards
+                if flash_end:
+                    base["flash_sale"]["ends_at_iso"] = flash_end.replace(tzinfo=timezone.utc).isoformat()
+
+        except SQLAlchemyError:
+            return base
+
+        return base

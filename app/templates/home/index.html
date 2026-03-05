@@ -1,0 +1,186 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}OneShop - Trang chủ{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
+{% block header %}
+<header class="home-top-header">
+  <div class="container home-top-header__inner">
+    <div class="left-links">
+      <a href="/">OneShop</a>
+      <a href="#flash-sale">Flash Sale</a>
+      <a href="#footer-intro">Blog</a>
+    </div>
+    <div class="right-links">
+      {% if session.get('user_id') %}
+        <a href="/user/center">Tài khoản</a>
+      {% else %}
+        <a href="/auth/login">Login</a>
+        <a href="/auth/register">Register</a>
+      {% endif %}
+      <a href="#footer-main">Help</a>
+    </div>
+  </div>
+</header>
+
+<header class="home-search-header">
+  <div class="container home-search-header__inner">
+    <a class="brand" href="/">OneShop</a>
+    <form class="search-form" action="/shop/search" method="get">
+      <input type="text" name="q" placeholder="Tìm kiếm sản phẩm..." />
+      <button type="submit">Tìm kiếm</button>
+    </form>
+    <a class="cart" href="/cart">
+      🛒
+      <span class="cart-count">{{ cart_count or 0 }}</span>
+    </a>
+  </div>
+  <div class="container suggestion-row">
+    {% for keyword in search_suggestions %}
+      <a href="/shop/search?q={{ keyword }}">{{ keyword }}</a>
+    {% endfor %}
+  </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<section class="home-banner">
+  <div class="banner-main">
+    <h2>{{ hero_banners[0].title }}</h2>
+    <p>{{ hero_banners[0].subtitle }}</p>
+    <a href="{{ hero_banners[0].link }}">Mua ngay</a>
+  </div>
+  <div class="banner-side">
+    {% for item in hero_banners[1:] %}
+      <article>
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.subtitle }}</p>
+        <a href="{{ item.link }}">Xem thêm</a>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="feature-icons">
+  {% for item in feature_items %}
+    <a href="{{ item.link }}">
+      <span>{{ item.icon }}</span>
+      <p>{{ item.label }}</p>
+    </a>
+  {% endfor %}
+</section>
+
+<section class="home-section category-grid">
+  <h2>Danh mục</h2>
+  <div class="grid">
+    {% for category in categories %}
+      <a href="/shop/search?q={{ category.name }}" class="category-card">
+        <span>📦</span>
+        <p>{{ category.name }}</p>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="home-section" id="flash-sale">
+  <div class="section-title-row">
+    <h2>Flash Sale</h2>
+    <div id="flash-countdown" data-ends-at="{{ flash_sale.ends_at_iso }}">00:00:00</div>
+  </div>
+  <div class="product-grid four-cols">
+    {% for item in flash_sale["items"] %}
+      <article class="product-card">
+        <img src="{{ item.image }}" alt="{{ item.name }}">
+        <h3>{{ item.name }}</h3>
+        <p class="price">₫{{ '{:,.0f}'.format(item.sale_price or item.price) }}</p>
+        <small>Đã bán {{ item.sold }}</small>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="home-section">
+  <h2>Tìm kiếm hàng đầu</h2>
+  <div class="product-grid four-cols">
+    {% for item in top_search_items %}
+      <article class="product-card">
+        <img src="{{ item.image }}" alt="{{ item.name }}">
+        <h3>{{ item.name }}</h3>
+        <p class="price">₫{{ '{:,.0f}'.format(item.price) }}</p>
+        <small>Hot • Đã bán {{ item.sold }}</small>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="home-section">
+  <h2>Gợi ý hôm nay</h2>
+  <div class="product-grid four-cols">
+    {% for item in recommended_items %}
+      <article class="product-card">
+        <img src="{{ item.image }}" alt="{{ item.name }}">
+        <h3>{{ item.name }}</h3>
+        <p class="price">₫{{ '{:,.0f}'.format(item.price) }}</p>
+        <small>⭐ {{ item.rating }} • Đã bán {{ item.sold }}</small>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="promotion-banners">
+  {% for banner in promotion_banners %}
+    <article>
+      <h3>{{ banner.title }}</h3>
+      <p>{{ banner.subtitle }}</p>
+      <a href="{{ banner.link }}">Khám phá</a>
+    </article>
+  {% endfor %}
+</section>
+
+<section class="footer-intro" id="footer-intro">
+  <h2>OneShop – Nền tảng mua sắm trực tuyến</h2>
+  <p>
+    OneShop là một hệ thống thương mại điện tử mô phỏng hoạt động của các nền tảng mua sắm trực tuyến hiện đại.
+    Hệ thống cho phép người dùng tìm kiếm, lựa chọn và mua sản phẩm từ nhiều danh mục khác nhau như điện tử,
+    phụ kiện, thiết bị gia dụng và nhiều nhóm hàng khác.
+  </p>
+
+  <h3>Trải nghiệm mua sắm tiện lợi</h3>
+  <ul>
+    <li>Tìm kiếm sản phẩm nhanh chóng</li>
+    <li>Gợi ý sản phẩm phù hợp</li>
+    <li>Flash sale và khuyến mãi</li>
+    <li>Quản lý giỏ hàng và theo dõi đơn hàng</li>
+  </ul>
+
+  <h3>Hệ thống quản trị dành cho người bán</h3>
+  <p>
+    Nền tảng cung cấp trang quản trị cho phép quản lý sản phẩm, danh mục, đơn hàng và người dùng,
+    giúp theo dõi hoạt động của hệ thống một cách trực quan và hiệu quả.
+  </p>
+
+  <h3>Mục tiêu của dự án</h3>
+  <p>
+    Dự án được xây dựng nhằm minh họa cách phát triển một hệ thống thương mại điện tử cơ bản bằng Flask,
+    theo mô hình monolith module, kết hợp với Jinja template để triển khai web hoàn chỉnh cả backend và frontend.
+  </p>
+</section>
+{% endblock %}
+
+{% block footer %}
+<footer class="home-footer" id="footer-main">
+  <div class="container">
+    <h3>OneShop</h3>
+    <p>Chính sách bảo mật • Điều khoản sử dụng • Hỗ trợ khách hàng</p>
+    <p>Email: support@shopeemini.com • Hotline: 1900 0000</p>
+    <p>© 2026 OneShop</p>
+  </div>
+</footer>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/home.js') }}"></script>
+{% endblock %}
