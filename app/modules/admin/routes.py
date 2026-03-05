@@ -87,7 +87,11 @@ def users():
     return jsonify([
         {
             "id": u.id,
-            "name": u.full_name,
+            "name": (
+                u.profile.full_name
+                if getattr(u, "profile", None) and u.profile.full_name
+                else u.username
+            ),
             "email": u.email
         }
         for u in users

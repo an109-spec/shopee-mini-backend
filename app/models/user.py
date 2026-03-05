@@ -14,7 +14,12 @@ class User(BaseModel):
     failed_login_attempts = db.Column(db.Integer, default=0)#số lần đăng nhập sai liên tiếp của một user.
     last_failed_login = db.Column(db.DateTime, nullable=True)#thời điểm (timestamp) của lần đăng nhập thất bại gần nhất.
     locked_until = db.Column(db.DateTime, nullable=True)#thời điểm kết thúc việc khóa tài khoản
-
+    profile = db.relationship(
+        "UserProfile",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
 
 class UserProfile(db.Model):
     __tablename__ = "user_profiles"
