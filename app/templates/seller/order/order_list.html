@@ -1,0 +1,43 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block seller_content %}
+
+<h2>Đơn hàng</h2>
+
+<table>
+
+<tr>
+<th>ID</th>
+<th>Khách</th>
+<th>Tổng tiền</th>
+<th>Trạng thái</th>
+<th></th>
+</tr>
+
+{% for order in orders %}
+
+<tr>
+
+<td>{{ order.id }}</td>
+
+<td>{{ order.user_id }}</td>
+
+<td>{{ order.total }}</td>
+
+<td>{{ order.status }}</td>
+
+<td>
+
+<a href="/seller/orders/{{order.id}}">
+Xem
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}

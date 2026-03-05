@@ -87,7 +87,14 @@ def login():
 
         user = AuthService.login(dto)
         session["user_id"] = user.id
-        return redirect(next_url or url_for("user.user_center_page"))
+
+        if user.role == "admin":
+            return redirect("/admin")
+
+        if user.role == "seller":
+            return redirect("/seller/dashboard")
+
+        return redirect("/user/center")
 
     except (ValidationError, UnauthorizedError) as e:
         return render_template(

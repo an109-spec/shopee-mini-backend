@@ -1,0 +1,35 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block seller_content %}
+
+<h2>Sửa sản phẩm</h2>
+
+<form method="post">
+
+<div>
+<label>Tên</label>
+<input name="name" value="{{ product.name }}">
+</div>
+
+<div>
+<label>Giá</label>
+<input name="price" value="{{ product.price }}">
+</div>
+
+<div>
+<label>Tồn kho</label>
+<input name="stock" value="{{ product.stock }}">
+</div>
+
+<div>
+<label>Mô tả</label>
+<textarea name="description">{{ product.description }}</textarea>
+</div>
+
+<button type="submit">
+Cập nhật
+</button>
+
+</form>
+
+{% endblock %}

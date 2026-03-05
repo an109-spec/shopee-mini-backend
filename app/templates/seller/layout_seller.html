@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<link rel="stylesheet"
+href="{{ url_for('static', filename='css/seller.css') }}">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+<div class="seller-container">
+
+<aside class="seller-sidebar">
+
+<h2>Seller Center</h2>
+
+<a href="/seller/dashboard">Dashboard</a>
+<a href="/seller/products">Products</a>
+<a href="/seller/orders">Orders</a>
+<a href="/seller/shop">Shop</a>
+
+</aside>
+
+<main class="seller-main">
+
+{% block content %}
+
+{% endblock %}
+
+</main>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/seller.js') }}"></script>
+
+</body>
+</html>

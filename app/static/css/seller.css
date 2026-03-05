@@ -1,0 +1,116 @@
+/* ===============================
+SELLER LAYOUT
+=============================== */
+
+.seller-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ===============================
+SIDEBAR
+=============================== */
+
+.seller-sidebar {
+    width: 240px;
+    background: #1e293b;
+    color: white;
+    padding: 20px;
+}
+
+.seller-sidebar h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.seller-sidebar a {
+    display: block;
+    padding: 10px;
+    color: #e2e8f0;
+    text-decoration: none;
+    border-radius: 6px;
+    margin-bottom: 5px;
+}
+
+.seller-sidebar a:hover {
+    background: #334155;
+}
+
+.seller-sidebar a.active {
+    background: #2563eb;
+}
+
+/* ===============================
+MAIN
+=============================== */
+
+.seller-main {
+    flex: 1;
+    padding: 30px;
+    background: #f1f5f9;
+}
+
+/* ===============================
+CARDS
+=============================== */
+
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 20px;
+}
+
+.dashboard-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.dashboard-card h3 {
+    font-size: 14px;
+    color: gray;
+}
+
+.dashboard-card p {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+/* ===============================
+TABLE
+=============================== */
+
+.seller-table {
+    width: 100%;
+    background: white;
+    border-radius: 10px;
+    border-collapse: collapse;
+}
+
+.seller-table th,
+.seller-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.seller-table th {
+    background: #f8fafc;
+    text-align: left;
+}
+
+/* ===============================
+BUTTON
+=============================== */
+
+.btn-seller {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-seller-danger {
+    background: #dc2626;
+}

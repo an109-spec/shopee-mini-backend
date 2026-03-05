@@ -1,0 +1,21 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block seller_content %}
+
+<h2>Thông tin Shop</h2>
+
+<div class="shop-card">
+
+<p><b>Tên shop:</b> {{ shop.name }}</p>
+
+<p><b>Mô tả:</b> {{ shop.description }}</p>
+
+<p><b>Rating:</b> {{ shop.rating }}</p>
+
+<a href="/seller/shop/edit">
+Chỉnh sửa shop
+</a>
+
+</div>
+
+{% endblock %}

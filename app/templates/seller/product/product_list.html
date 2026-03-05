@@ -1,0 +1,51 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block seller_content %}
+
+<h2>Danh sách sản phẩm</h2>
+
+<a href="/seller/products/create">
+Thêm sản phẩm
+</a>
+
+<table>
+
+<tr>
+<th>ID</th>
+<th>Tên</th>
+<th>Giá</th>
+<th>Tồn kho</th>
+<th>Hành động</th>
+</tr>
+
+{% for product in products %}
+
+<tr>
+
+<td>{{ product.id }}</td>
+
+<td>{{ product.name }}</td>
+
+<td>{{ product.price }}</td>
+
+<td>{{ product.stock }}</td>
+
+<td>
+
+<a href="/seller/products/{{product.id}}">
+Xem
+</a>
+
+<a href="/seller/products/edit/{{product.id}}">
+Sửa
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}

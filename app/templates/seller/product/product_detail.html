@@ -1,0 +1,19 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block seller_content %}
+
+<h2>Chi tiết sản phẩm</h2>
+
+<p><b>Tên:</b> {{ product.name }}</p>
+
+<p><b>Giá:</b> {{ product.price }}</p>
+
+<p><b>Tồn kho:</b> {{ product.stock }}</p>
+
+<p><b>Mô tả:</b> {{ product.description }}</p>
+
+<a href="/seller/products/edit/{{product.id}}">
+Sửa sản phẩm
+</a>
+
+{% endblock %}

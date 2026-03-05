@@ -1,0 +1,32 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block seller_content %}
+
+<h2>Chi tiết đơn hàng</h2>
+
+<p>ID: {{ order.id }}</p>
+
+<p>Khách: {{ order.user_id }}</p>
+
+<p>Tổng tiền: {{ order.total }}</p>
+
+<p>Trạng thái: {{ order.status }}</p>
+
+<h3>Sản phẩm</h3>
+
+<ul>
+
+{% for item in order.items %}
+
+<li>
+
+{{ item.product.name }}
+x {{ item.quantity }}
+
+</li>
+
+{% endfor %}
+
+</ul>
+
+{% endblock %}

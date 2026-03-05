@@ -1,0 +1,27 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block seller_content %}
+
+<h2>Đăng ký Shop</h2>
+
+<form method="post">
+
+<div>
+<label>Tên shop</label>
+<input type="text" name="name" required>
+</div>
+
+<div>
+<label>Mô tả</label>
+<textarea name="description"></textarea>
+</div>
+
+<div>
+<button type="submit">
+Tạo Shop
+</button>
+</div>
+
+</form>
+
+{% endblock %}

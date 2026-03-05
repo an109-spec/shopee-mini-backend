@@ -1,0 +1,37 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block title %}Seller Dashboard{% endblock %}
+
+{% block content %}
+
+<h1>Seller Dashboard</h1>
+
+<div class="dashboard-cards">
+
+<div class="dashboard-card">
+<h3>Doanh thu hôm nay</h3>
+<p>{{ today_revenue }}đ</p>
+</div>
+
+<div class="dashboard-card">
+<h3>Tổng đơn hàng</h3>
+<p>{{ total_orders }}</p>
+</div>
+
+<div class="dashboard-card">
+<h3>Sản phẩm</h3>
+<p>{{ total_products }}</p>
+</div>
+
+<div class="dashboard-card">
+<h3>Đánh giá</h3>
+<p>{{ rating }}</p>
+</div>
+
+</div>
+
+<br>
+
+<canvas id="revenueChart" height="100"></canvas>
+
+{% endblock %}

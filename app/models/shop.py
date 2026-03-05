@@ -11,8 +11,15 @@ class Shop(BaseModel):
         db.ForeignKey("users.id"),
         nullable=False
     )
+
     name = db.Column(db.String(150), nullable=False)
     logo = db.Column(db.String(255))
     banner = db.Column(db.String(255))
     rating = db.Column(db.Numeric(3, 2), default=0.00)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc)
+    )
+
+    owner = db.relationship("User", backref="shop")

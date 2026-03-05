@@ -6,9 +6,10 @@ from .product_manager import ProductManager
 from .order_manager import OrderManager
 from .user_manager import UserManager
 from .analytics import AnalyticsService
-
+from app.common.security.permission import require_role
 
 @admin_bp.route("/dashboard")
+@require_role("admin")
 def dashboard():
 
     data = {
