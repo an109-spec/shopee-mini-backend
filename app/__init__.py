@@ -16,6 +16,9 @@ from app.modules.user import user_bp
 from app.modules.order import order_bp
 from app.modules.payment import payment_bp
 from app.modules.chat import chat_bp
+from app.modules.admin import admin_bp
+from app.modules.audit import audit_bp
+from app.modules.promotion import promotion_bp 
 
 from app.cli import register_cli
 
@@ -68,3 +71,6 @@ def register_blueprints(app):
     app.register_blueprint(order_bp)
     app.register_blueprint(payment_bp)
     app.register_blueprint(chat_bp)
+    app.register_blueprint(promotion_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(audit_bp)

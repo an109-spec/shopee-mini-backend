@@ -1,0 +1,24 @@
+{% extends "admin/layout_admin.html" %}
+
+{% block admin_content %}
+
+<h1>Audit Logs</h1>
+
+<table class="admin-table">
+
+<thead>
+<tr>
+<th>Time</th>
+<th>User</th>
+<th>Action</th>
+<th>Target</th>
+</tr>
+</thead>
+
+<tbody id="audit_table"></tbody>
+
+</table>
+
+<script src="{{ url_for('static', filename='js/audit.js') }}"></script>
+
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "admin/layout_admin.html" %}
+
+{% block admin_content %}
+
+<h1>Product Manager</h1>
+
+<button onclick="openCreate()">Add Product</button>
+
+<table class="admin-table">
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Price</th>
+<th>Stock</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="product_table"></tbody>
+
+</table>
+
+<script src="{{ url_for('static', filename='js/admin_products.js') }}"></script>
+
+{% endblock %}

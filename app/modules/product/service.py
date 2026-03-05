@@ -3,7 +3,8 @@ from app.extensions.db import db
 
 from .dto import ProductCreateDTO, ProductResponseDTO, ProductUpdateDTO, ReviewCreateDTO
 from .filters import filter_by_category, filter_by_price, sort_products
-from .models import Product, ProductImage, Review
+from app.models.product import Product, ProductImage
+from app.models.review import Review
 from .search import full_text_query
 
 

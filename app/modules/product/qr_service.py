@@ -2,7 +2,7 @@ from io import BytesIO
 
 from app.common.exceptions import NotFoundError, ValidationError
 
-from .models import Product
+from app.models.product import Product
 
 
 def generate_product_qr_by_id(product_id: int):

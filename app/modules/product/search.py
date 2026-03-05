@@ -1,6 +1,6 @@
 from sqlalchemy import or_
 
-from .models import Product
+from app.models.product import Product
 
 
 def search_products(query, keyword: str | None):

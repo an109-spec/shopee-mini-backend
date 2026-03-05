@@ -1,0 +1,27 @@
+{% extends "admin/layout_admin.html" %}
+
+{% block admin_content %}
+
+<h1>Order Manager</h1>
+
+<table class="admin-table">
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>User</th>
+<th>Total</th>
+<th>Status</th>
+<th>Update</th>
+</tr>
+
+</thead>
+
+<tbody id="orders_table"></tbody>
+
+</table>
+
+<script src="{{ url_for('static', filename='js/admin_orders.js') }}"></script>
+
+{% endblock %}

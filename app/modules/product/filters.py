@@ -2,8 +2,9 @@ from decimal import Decimal, InvalidOperation
 
 from app.common.exceptions import ValidationError
 
-from .models import Product
 
+from app.models.product import Product, ProductImage
+from app.models.review import Review
 
 def _parse_decimal(name: str, raw_value):
     if raw_value in (None, ""):
