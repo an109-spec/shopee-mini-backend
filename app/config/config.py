@@ -75,9 +75,9 @@ class DevelopmentConfig(BaseConfig):
 
 class ProductionConfig(BaseConfig):
     DEBUG = False
-
-    if not BaseConfig.SQLALCHEMY_DATABASE_URI:
-        raise RuntimeError("Production requires DATABASE configuration")
+    SQLALCHEMY_DATABASE_URI = (
+        os.getenv("DATABASE_URL") or BaseConfig.SQLALCHEMY_DATABASE_URI
+    )
 
 
 class TestingConfig(BaseConfig):

@@ -1,0 +1,32 @@
+<div class="chat-container">
+
+    <div class="chat-header">
+        Chat
+    </div>
+
+    <div id="chat-box" class="chat-box"></div>
+
+    <div class="typing" id="typing"></div>
+
+    <div class="chat-input">
+
+        <input id="message-input" placeholder="Nhập tin nhắn">
+
+        <button id="send-btn">
+            Send
+        </button>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+<script>
+window.CHAT_CONFIG = {
+    room_id: {{ room_id | tojson }},
+    current_user_id: {{ current_user.id | tojson }}
+}
+</script>
+
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
