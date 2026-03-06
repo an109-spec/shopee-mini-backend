@@ -37,15 +37,22 @@ def seller_center():
 
     user = get_current_user()
 
+    # chưa login
     if not user:
-        return redirect("/auth/login")
+        return redirect(url_for("auth.login", next="/seller"))
 
     shop = Shop.query.filter_by(owner_id=user.id).first()
 
-    if shop:
-        return redirect("/seller/dashboard")
+    # bước 1: chưa có shop
+    if not shop:
+        return redirect(url_for("seller.register_shop"))
 
-    return redirect("/seller/register_shop")
+    # bước 2: chưa setup shipping
+    if not shop.shipping_configured:
+        return redirect(url_for("seller.shipping_setup"))
+
+    # hoàn tất
+    return redirect(url_for("seller.dashboard"))
 
 
 # =========================
@@ -57,7 +64,12 @@ def register_shop():
     user = get_current_user()
 
     if not user:
-        return redirect(url_for("auth.login", role="seller"))
+        return redirect(url_for("auth.login"))
+
+    shop = Shop.query.filter_by(owner_id=user.id).first()
+
+    if shop:
+        return redirect(url_for("seller.dashboard"))
 
     if request.method == "GET":
         return render_template("seller/shop/register_shop.html")
@@ -66,7 +78,32 @@ def register_shop():
 
     SellerService.register_shop(user, name)
 
-    return redirect("/seller/dashboard")
+    return redirect(url_for("seller.shipping_setup"))
+
+
+# =========================
+# SHIPPING SETUP
+# =========================
+@seller_bp.route("/shipping_setup", methods=["GET", "POST"])
+def shipping_setup():
+
+    user = get_current_user()
+
+    if not user:
+        return redirect(url_for("auth.login"))
+
+    shop = Shop.query.filter_by(owner_id=user.id).first()
+
+    if not shop:
+        return redirect(url_for("seller.register_shop"))
+
+    if request.method == "GET":
+        return render_template("seller/shop/shipping_setup.html", shop=shop)
+
+    SellerService.setup_shipping(shop, request.form)
+
+    return redirect(url_for("seller.dashboard"))
+
 
 
 # =========================
@@ -162,3 +199,17 @@ def revenue_api():
     }
 
     return jsonify(data)
+@seller_bp.route("/become")
+def become_seller():
+
+    user = get_current_user()
+
+    if not user:
+        return redirect(url_for("auth.login"))
+
+    shop = Shop.query.filter_by(owner_id=user.id).first()
+
+    if shop:
+        return redirect(url_for("seller.dashboard"))
+
+    return redirect(url_for("seller.register_shop"))

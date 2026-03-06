@@ -20,9 +20,26 @@
 <div class="container header-top-inner">
 
 <div class="top-left">
-<a href="{{ url_for('seller.dashboard') }}">Kênh Người Bán</a>
-<span>|</span>
-<a href="{{ url_for('seller.register_shop') }}">Trở thành Người bán</a>
+{% if session.get("user_id") %}
+
+{% set user = User.query.get(session.get("user_id")) %}
+{% set shop = user.shop if user else None %}
+
+{% if shop %}
+
+<a href="{{ url_for('seller.seller_center') }}">
+Kênh Người Bán
+</a>
+
+{% else %}
+
+<a href="{{ url_for('seller.register_shop') }}">
+Trở thành Người bán
+</a>
+
+{% endif %}
+
+{% endif %}
 </div>
 
 <div class="top-right">

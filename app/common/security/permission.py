@@ -1,8 +1,8 @@
 from functools import wraps
-from flask import session
+from flask import session, redirect, url_for
 from app.models import User
 from app.common.exceptions import ForbiddenError
-
+from app.models import User, Shop
 
 def require_role(*roles: str):
 
@@ -30,9 +30,31 @@ def require_role(*roles: str):
 
     return decorator
 
-
 def seller_required(func):
-    return require_role("seller", "admin")(func)
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+
+        user_id = session.get("user_id")
+
+        # chưa login
+        if not user_id:
+            return redirect(url_for("auth.login", role="seller"))
+
+        user = User.query.get(user_id)
+
+        if not user:
+            return redirect(url_for("auth.login", role="seller"))
+
+        # kiểm tra shop
+        shop = Shop.query.filter_by(owner_id=user.id).first()
+
+        if not shop:
+            return redirect(url_for("seller.register_shop"))
+
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 def admin_required(func):

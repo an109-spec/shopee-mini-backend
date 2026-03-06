@@ -56,7 +56,7 @@ def register():
     try:
         user = AuthService.register(dto)
         session["user_id"] = user.id
-        return redirect(url_for("user.user_center_page"))
+        return redirect(url_for("seller.seller_center"))
 
     except ConflictError as e:
         return render_template("auth/register.html", errors=[str(e)])
@@ -98,10 +98,20 @@ def login():
         if user.role == "admin":
             return redirect("/admin")
 
-        if user.role == "seller":
-            return redirect("/seller/dashboard")
+        from app.models import Shop
 
-        return redirect("/user/center")
+        shop = Shop.query.filter_by(owner_id=user.id).first()
+
+        # admin
+        if user.role == "admin":
+            return redirect("/admin")
+
+        # có shop → seller center
+        if shop:
+            return redirect(url_for("seller.seller_center"))
+
+        # không có shop → buyer
+        return redirect(url_for("user.user_center_page"))
 
     except (ValidationError, UnauthorizedError) as e:
         return render_template(
