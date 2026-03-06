@@ -1,61 +1,178 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <title>{% block title %}MyApp{% endblock %}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<title>{% block title %}Shopee Mini{% endblock %}</title>
 
-  <link rel="stylesheet"
-        href="{{ url_for('static', filename='css/base.css') }}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  {% block styles %}{% endblock %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+
+{% block styles %}{% endblock %}
 </head>
 
 <body>
 
-{% block header %}
-<header class="app-header">
-  <div class="container">
-    <a href="/" class="app-logo">MyApp</a>
-    <a class="seller-link" href="/seller/dashboard">
-🚀 Kênh Người Bán
-</a>
-    {% if session.get('user_id') %}
-      <form action="{{ url_for('auth.logout') }}" method="post" style="display:inline-block; margin-left: 16px;">
-        <button type="submit" class="btn btn--outline">Đăng xuất</button>
-      </form>
-    {% endif %}
+<header class="shopee-header">
 
-  </div>
+<!-- TOP NAV -->
+<div class="header-top">
+<div class="container header-top-inner">
+
+<div class="top-left">
+<a href="{{ url_for('seller.dashboard') }}">Kênh Người Bán</a>
+<span>|</span>
+<a href="{{ url_for('seller.register_shop') }}">Trở thành Người bán</a>
+</div>
+
+<div class="top-right">
+
+<!-- NOTIFICATION -->
+<div class="nav-item notification">
+
+<a href="#">🔔 Thông Báo</a>
+
+<div class="dropdown notification-dropdown">
+
+<div class="dropdown-header">
+Thông báo mới
+</div>
+
+<ul>
+<li><a href="#">Bạn có đơn hàng mới</a></li>
+<li><a href="#">Voucher 50K vừa được tặng</a></li>
+<li><a href="#">Flash sale bắt đầu</a></li>
+</ul>
+
+</div>
+
+</div>
+
+<span>|</span>
+
+<a href="/support">❓ Hỗ Trợ</a>
+
+<span>|</span>
+
+{% if session.get('user_id') %}
+
+<form action="{{ url_for('auth.logout') }}" method="post" class="logout-form">
+<button class="logout-btn">Đăng xuất</button>
+</form>
+
+{% else %}
+
+<a href="{{ url_for('auth.register') }}">Đăng Ký</a>
+<span>|</span>
+<a href="{{ url_for('auth.login') }}">Đăng Nhập</a>
+
+{% endif %}
+
+</div>
+
+</div>
+</div>
+
+
+<!-- MAIN HEADER -->
+<div class="header-main">
+<div class="container header-main-inner">
+
+<div class="logo">
+<a href="/">Shopee</a>
+</div>
+
+
+<div class="search-box">
+
+<form action="/product/search" method="get">
+
+<input
+type="text"
+name="q"
+id="searchInput"
+placeholder="Shopee bao ship 0Đ - Đăng ký ngay!"
+autocomplete="off"
+>
+
+<button type="submit">🔍</button>
+
+</form>
+
+<div class="search-suggest" id="searchSuggest">
+<a href="#">Iphone 15</a>
+<a href="#">Áo Khoác Nam</a>
+<a href="#">Quần Jean</a>
+<a href="#">Giày Thể Thao</a>
+<a href="#">Áo Hoodie</a>
+</div>
+
+</div>
+
+
+<div class="cart">
+
+<a href="/cart">🛒</a>
+
+<div class="dropdown cart-dropdown">
+
+<div class="dropdown-header">
+Sản phẩm mới thêm
+</div>
+
+<ul>
+<li>Áo hoodie nam</li>
+<li>Giày sneaker trắng</li>
+</ul>
+
+<a class="view-cart-btn" href="/cart">
+Xem giỏ hàng
+</a>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
 </header>
-{% endblock %}
+
+
 
 <main class="app-main">
-  <div class="container">
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert--{{ category }}">
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+<div class="container">
 
-    {% block content %}{% endblock %}
-  </div>
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+
+<div class="alert alert--{{ category }}">
+{{ message }}
+</div>
+
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+</div>
+
 </main>
 
-{% block footer %}
+
 <footer class="app-footer">
-  <div class="container">
-    © {{ current_year or 2026 }} MyApp
-  </div>
+<div class="container">
+© {{ current_year or 2026 }} Shopee Mini
+</div>
 </footer>
-{% endblock %}
+
 
 <script src="{{ url_for('static', filename='js/base.js') }}"></script>
+
 {% block scripts %}{% endblock %}
+
 </body>
 </html>

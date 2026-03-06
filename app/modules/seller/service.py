@@ -1,5 +1,5 @@
 from app.extensions import db
-from app.models import Shop, Product, User
+from app.models import Shop, User
 
 
 class SellerService:
@@ -11,8 +11,6 @@ class SellerService:
             owner_id=user.id,
             name=name
         )
-
-        user.role = "seller"
 
         db.session.add(shop)
         db.session.commit()
