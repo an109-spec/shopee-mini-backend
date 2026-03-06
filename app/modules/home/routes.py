@@ -12,3 +12,6 @@ def home_page():
     context["cart_count"] = sum(int(item.get("quantity", 0)) for item in cart_items.values())
 
     return render_template("home/index.html", **context)
+@home_bp.route("/support", methods=["GET"])
+def support_page():
+    return render_template("home/support.html")

@@ -69,13 +69,20 @@ def register():
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
+        role = (request.args.get("role") or "buyer").strip().lower()
+        if role not in {"buyer", "seller"}:
+            role = "buyer"
         return render_template(
             "auth/login.html",
             next_url=request.args.get("next"),
+            selected_role=role,
         )
 
 
     data = request.form.to_dict()
+    role = (data.get("role") or request.args.get("role") or "buyer").strip().lower()
+    if role not in {"buyer", "seller"}:
+        role = "buyer"
     next_url = data.get("next") or request.args.get("next")
     try:
         validate_login(data)
@@ -102,6 +109,7 @@ def login():
             error=str(e),
             locked_until=getattr(e, "locked_until", None),
             next_url=next_url,
+            selected_role=role,
         )
 
 # ======================================================

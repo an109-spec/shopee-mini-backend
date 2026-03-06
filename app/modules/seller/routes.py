@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, session, jsonify
+from flask import render_template, request, redirect, session, jsonify, url_for
 
 from app.models import User, Shop
 from app.extensions import db
@@ -10,6 +10,14 @@ from .dto import CreateProductDTO
 
 from app.common.security.permission import seller_required
 from app.common.exceptions import ForbiddenError
+
+def get_current_user():
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return None
+
+    return User.query.get(user_id)
 
 def get_current_shop(user):
 
@@ -27,7 +35,7 @@ def get_current_shop(user):
 @seller_bp.route("/")
 def seller_center():
 
-    user = get_current_shop()
+    user = get_current_user()
 
     if not user:
         return redirect("/auth/login")
@@ -46,10 +54,10 @@ def seller_center():
 @seller_bp.route("/register_shop", methods=["GET", "POST"])
 def register_shop():
 
-    user = get_current_shop()
+    user = get_current_user()
 
     if not user:
-        return redirect("/auth/login")
+        return redirect(url_for("auth.login", role="seller"))
 
     if request.method == "GET":
         return render_template("seller/shop/register_shop.html")
@@ -68,8 +76,9 @@ def register_shop():
 @seller_required
 def dashboard():
 
-    user = get_current_shop()
-
+    user = get_current_user()
+    if not user:
+        return redirect(url_for("auth.login", role="seller"))
     shop = get_current_shop(user)
 
     products = shop.products
@@ -88,8 +97,9 @@ def dashboard():
 @seller_required
 def product_list():
 
-    user = get_current_shop()
-
+    user = get_current_user()
+    if not user:
+        return redirect(url_for("auth.login", role="seller"))
     shop = get_current_shop(user)
 
     products = ProductManager.get_products(shop.id)
@@ -107,8 +117,9 @@ def product_list():
 @seller_required
 def create_product():
 
-    user = get_current_shop()
-
+    user = get_current_user()
+    if not user:
+        return redirect(url_for("auth.login", role="seller"))
     shop = get_current_shop(user)
 
     if request.method == "GET":

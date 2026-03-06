@@ -1,26 +1,99 @@
 /* =============================== Auth Layout ================================ */
-.auth { min-height: 80vh;
+.auth { 
+  min-height: 80vh;
   display: flex;
   justify-content: center;
   align-items: center; }
-.auth__container { width: 100%;
+
+  .auth--split {
+  width: min(1080px, 100%);
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 40px;
+  align-items: center;
+}
+
+.auth__hero {
+  border-radius: 10px;
+  padding: 32px;
+  background: linear-gradient(145deg, #ff5a36, #ee4d2d);
+  color: #fff;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.auth__hero h2 {
+  font-size: 38px;
+  margin-bottom: 10px;
+}
+
+.auth__hero p {
+  font-size: 20px;
+  line-height: 1.5;
+  opacity: 0.95;}
+
+.auth__container { 
+  width: 100%;
   max-width: 420px;
   background: #fff;
   padding: 32px;
   border-radius: 6px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); }
-.auth__title { text-align: center;
+
+
+.auth__title { 
+  text-align: center;
   font-size: 22px;
-  margin-bottom: 24px; }
+  margin-bottom: 24px; 
+
+}
+
+
+.auth__role-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.auth__role-btn {
+  text-align: center;
+  border: 1px solid #d9d9d9;
+  padding: 10px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #555;
+  font-weight: 600;
+}
+
+.auth__role-btn.is-active {
+  border-color: #ee4d2d;
+  color: #ee4d2d;
+  background: #fff4f1;
+}
+
 .auth__desc { text-align: center;
   font-size: 14px;
   color: #666;
   margin-bottom: 20px; }
-.auth__links { margin-top: 16px;
+
+
+.auth__links { 
+  margin-top: 16px;
   text-align: center;
-   font-size: 14px; }
-.auth__links a { color: #ee4d2d;
+  font-size: 14px; 
+   display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+
+.auth__links a { 
+  color: #ee4d2d;
   text-decoration: none; }
+
 .auth__links a:hover { text-decoration: underline; }
 
 .auth__meta {
@@ -56,4 +129,27 @@
 
 .auth__resend-form {
   margin: 0;
+}
+
+@media (max-width: 920px) {
+  .auth--split {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .auth__hero {
+    min-height: 180px;
+  }
+
+  .auth__hero h2 {
+    font-size: 30px;
+  }
+
+  .auth__hero p {
+    font-size: 16px;
+  }
+
+  .auth__container {
+    max-width: 100%;
+  }
 }
