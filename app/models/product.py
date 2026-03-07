@@ -1,6 +1,7 @@
 from app.extensions.db import db 
 from .base import BaseModel
 from datetime import datetime, timezone
+from app.core.enums.product_status import ProductStatus
 class ProductCategory(db.Model):
     __tablename__ = "product_categories"
     
@@ -29,6 +30,12 @@ class Product(BaseModel):
         onupdate=lambda: datetime.now(timezone.utc),
     )
     shop_id = db.Column(db.BigInteger, db.ForeignKey("shops.id"), nullable=True)
+    status = db.Column(
+        db.Enum(ProductStatus, name="product_status"),
+        nullable=False,
+        default=ProductStatus.ACTIVE,
+        index=True,
+    )
     product_categories = db.relationship(
         "app.models.product.ProductCategory",
         back_populates="product",

@@ -4,6 +4,7 @@ from app.extensions.db import db
 from .dto import ProductCreateDTO, ProductResponseDTO, ProductUpdateDTO, ReviewCreateDTO
 from .filters import filter_by_category, filter_by_price, sort_products
 from app.models.product import Product, ProductImage
+from app.core.enums.product_status import ProductStatus
 from app.models.review import Review
 from .search import full_text_query
 
@@ -11,7 +12,7 @@ from .search import full_text_query
 class ProductService:
     @staticmethod
     def list_products(*, keyword=None, min_price=None, max_price=None, category=None, sort=None, page=1, per_page=10):
-        query = Product.query
+        query = Product.query.filter(Product.status == ProductStatus.ACTIVE)
         query = full_text_query(query, keyword)
         query = filter_by_price(query, min_price, max_price)
         query = filter_by_category(query, category)
@@ -51,7 +52,7 @@ class ProductService:
 
     @staticmethod
     def update_product(product_id: int, data: ProductUpdateDTO):
-        product = Product.query.get(product_id)
+        product = Product.query.filter(Product.id == product_id, Product.status != ProductStatus.DELETED).first()
         if not product:
             raise NotFoundError("Không tìm thấy sản phẩm")
 
@@ -79,16 +80,16 @@ class ProductService:
 
     @staticmethod
     def delete_product(product_id: int):
-        product = Product.query.get(product_id)
+        product = Product.query.filter(Product.id == product_id, Product.status == ProductStatus.ACTIVE).first()
         if not product:
             raise NotFoundError("Không tìm thấy sản phẩm")
 
-        db.session.delete(product)
+        product.status = ProductStatus.DELETED
         db.session.commit()
 
     @staticmethod
     def get_product_detail(product_id: int):
-        product = Product.query.get(product_id)
+        product = Product.query.filter(Product.id == product_id, Product.status == ProductStatus.ACTIVE).first()
         if not product:
             raise NotFoundError("Không tìm thấy sản phẩm")
 
@@ -99,11 +100,11 @@ class ProductService:
 
     @staticmethod
     def get_related_products(product_id: int):
-        product = Product.query.get(product_id)
+        product = Product.query.filter(Product.id == product_id, Product.status == ProductStatus.ACTIVE).first()
         if not product:
             raise NotFoundError("Không tìm thấy sản phẩm")
 
-        related_query = Product.query.filter(Product.id != product_id)
+        related_query = Product.query.filter(Product.id != product_id, Product.status == ProductStatus.ACTIVE)
         if product.category_id is not None:
             related_query = related_query.filter(Product.category_id == product.category_id)
 
@@ -112,7 +113,7 @@ class ProductService:
 
     @staticmethod
     def add_review(product_id: int, user_id: int, data: ReviewCreateDTO):
-        product = Product.query.get(product_id)
+        product = Product.query.filter(Product.id == product_id, Product.status == ProductStatus.ACTIVE).first()
         if not product:
             raise NotFoundError("Không tìm thấy sản phẩm")
 
@@ -136,7 +137,7 @@ class ProductService:
 
     @staticmethod
     def get_product_reviews(product_id: int):
-        product = Product.query.get(product_id)
+        product = Product.query.filter(Product.id == product_id, Product.status == ProductStatus.ACTIVE).first()
         if not product:
             raise NotFoundError("Không tìm thấy sản phẩm")
 

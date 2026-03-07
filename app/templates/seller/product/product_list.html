@@ -28,17 +28,14 @@ Thêm sản phẩm
 
 <td>{{ product.price }}</td>
 
-<td>{{ product.stock }}</td>
+<td>{{ product.stock_quantity }}</td>
+
+<td>{{ product.status.value if product.status else "ACTIVE" }}</td>
 
 <td>
-
-<a href="/seller/products/{{product.id}}">
-Xem
-</a>
-
-<a href="/seller/products/edit/{{product.id}}">
-Sửa
-</a>
+<a href="/seller/products/{{product.id}}">Xem</a>
+<a href="/seller/products/edit/{{product.id}}">Sửa</a>
+<a href="/seller/products/{{product.id}}/delete">Xoá mềm</a>
 
 </td>
 

@@ -1,7 +1,12 @@
 from flask import jsonify, request, send_file, render_template
 
 from app.common.exceptions import AppException, ValidationError
-
+from decimal import Decimal
+from flask import session
+from app.models import User
+from app.modules.seller.repository import SellerRepository
+from app.modules.seller.product_service import SellerProductCreateDTO, SellerProductService, SellerProductUpdateDTO
+from app.common.exceptions import ForbiddenError
 from . import product_bp
 from .dto import ProductCreateDTO, ProductUpdateDTO, ReviewCreateDTO
 from .service import ProductService
@@ -129,6 +134,118 @@ def related_products(id: int):
     except AppException as e:
         return jsonify({"error": str(e)}), e.status_code
 
+def _get_current_seller_shop_id() -> int:
+    user_id = session.get("user_id")
+    if not user_id:
+        raise ForbiddenError("Login required")
+
+    user = User.query.get(user_id)
+    if not user or not user.is_seller:
+        raise ForbiddenError("Seller permission required")
+
+    shop = SellerRepository.get_shop_by_owner_id(user.id)
+    if not shop:
+        raise ForbiddenError("Shop not found")
+
+    return shop.id
+
+
+@product_bp.route("/product/create", methods=["POST"])
+def seller_create_product():
+    try:
+        if not request.is_json:
+            raise ValidationError("Request must be JSON")
+
+        payload = request.get_json() or {}
+        dto = SellerProductCreateDTO(
+            name=(payload.get("name") or "").strip(),
+            description=payload.get("description"),
+            price=Decimal(str(payload.get("price", 0))),
+            stock=int(payload.get("stock", 0)),
+            category_id=payload.get("category_id"),
+            images=payload.get("images") or [],
+        )
+        result = SellerProductService.create(_get_current_seller_shop_id(), dto)
+        return jsonify(result), 201
+    except (ValueError, TypeError):
+        return jsonify({"error": "Dữ liệu đầu vào không hợp lệ"}), 400
+    except AppException as e:
+        return jsonify({"error": str(e)}), e.status_code
+
+
+@product_bp.route("/product/list", methods=["GET"])
+def seller_list_products():
+    try:
+        items = SellerProductService.list_products(_get_current_seller_shop_id())
+        return jsonify({"items": items, "total": len(items)}), 200
+    except AppException as e:
+        return jsonify({"error": str(e)}), e.status_code
+
+
+@product_bp.route("/product/update", methods=["PUT"])
+def seller_update_product():
+    try:
+        if not request.is_json:
+            raise ValidationError("Request must be JSON")
+        payload = request.get_json() or {}
+        product_id = int(payload.get("product_id", 0))
+        dto = SellerProductUpdateDTO(
+            product_id=product_id,
+            name=payload.get("name"),
+            description=payload.get("description"),
+            price=Decimal(str(payload["price"])) if payload.get("price") is not None else None,
+            stock=int(payload["stock"]) if payload.get("stock") is not None else None,
+            category_id=payload.get("category_id"),
+        )
+        return jsonify(SellerProductService.update(_get_current_seller_shop_id(), dto)), 200
+    except (ValueError, TypeError):
+        return jsonify({"error": "Dữ liệu đầu vào không hợp lệ"}), 400
+    except AppException as e:
+        return jsonify({"error": str(e)}), e.status_code
+
+
+@product_bp.route("/product/stock", methods=["PUT"])
+def seller_update_stock():
+    try:
+        if not request.is_json:
+            raise ValidationError("Request must be JSON")
+        payload = request.get_json() or {}
+        product_id = int(payload.get("product_id", 0))
+        stock = int(payload.get("stock", 0))
+        return jsonify(SellerProductService.update_stock(_get_current_seller_shop_id(), product_id, stock)), 200
+    except (ValueError, TypeError):
+        return jsonify({"error": "Dữ liệu đầu vào không hợp lệ"}), 400
+    except AppException as e:
+        return jsonify({"error": str(e)}), e.status_code
+
+
+@product_bp.route("/product/status", methods=["PUT"])
+def seller_update_status():
+    try:
+        if not request.is_json:
+            raise ValidationError("Request must be JSON")
+        payload = request.get_json() or {}
+        product_id = int(payload.get("product_id", 0))
+        status = (payload.get("status") or "").upper()
+        return jsonify(SellerProductService.update_status(_get_current_seller_shop_id(), product_id, status)), 200
+    except (ValueError, TypeError):
+        return jsonify({"error": "Dữ liệu đầu vào không hợp lệ"}), 400
+    except AppException as e:
+        return jsonify({"error": str(e)}), e.status_code
+
+
+@product_bp.route("/product", methods=["DELETE"])
+def seller_delete_product():
+    try:
+        if not request.is_json:
+            raise ValidationError("Request must be JSON")
+        payload = request.get_json() or {}
+        product_id = int(payload.get("product_id", 0))
+        return jsonify(SellerProductService.soft_delete(_get_current_seller_shop_id(), product_id)), 200
+    except (ValueError, TypeError):
+        return jsonify({"error": "Dữ liệu đầu vào không hợp lệ"}), 400
+    except AppException as e:
+        return jsonify({"error": str(e)}), e.status_code
 
 @product_bp.route("/products/<int:id>/qr", methods=["GET"])
 def get_product_qr(id: int):

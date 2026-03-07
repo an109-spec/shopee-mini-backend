@@ -24,3 +24,4 @@ class Message(BaseModel):
     sender_id = db.Column(db.BigInteger, db.ForeignKey("users.id"), nullable=False)
     content = db.Column(db.Text)
     image = db.Column(db.String(255))
+    seen = db.Column(db.Boolean, default=False, nullable=False)

@@ -1,5 +1,6 @@
 from app.extensions import db
 from app.models import Product
+from app.core.enums.product_status import ProductStatus
 from .dto import CreateProductDTO
 
 
@@ -11,9 +12,11 @@ class ProductManager:
         product = Product(
             shop_id=shop_id,
             name=dto.name,
+            slug=f"{dto.name.strip().lower().replace(' ', '-')}-{shop_id}",
             price=dto.price,
-            stock=dto.stock,
-            description=dto.description
+            stock_quantity=dto.stock,
+            description=dto.description,
+            status=ProductStatus.ACTIVE,
         )
 
         db.session.add(product)
@@ -24,7 +27,10 @@ class ProductManager:
     @staticmethod
     def get_products(shop_id: int):
 
-        return Product.query.filter_by(shop_id=shop_id).all()
+        return Product.query.filter(
+            Product.shop_id == shop_id,
+            Product.status != ProductStatus.DELETED,
+        ).all()
 
     @staticmethod
     def delete(product_id: int):
@@ -34,5 +40,5 @@ class ProductManager:
         if not product:
             return
 
-        db.session.delete(product)
+        product.status = ProductStatus.DELETED
         db.session.commit()

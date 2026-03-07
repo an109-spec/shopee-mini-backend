@@ -64,3 +64,18 @@ class SellerService:
         db.session.commit()
 
         return shop
+
+    @staticmethod
+    def update_shop(shop: Shop, dto: CreateShopDTO):
+        SellerService._validate_step_1(dto)
+
+        shop.name = dto.name.strip()
+        shop.pickup_address = dto.pickup_address.strip()
+        shop.contact_email = dto.email.strip().lower()
+        shop.contact_phone = dto.phone.strip()
+        if shop.onboarding_step < 2:
+            shop.onboarding_step = 2
+
+        db.session.commit()
+
+        return shop
