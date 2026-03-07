@@ -7,50 +7,51 @@
 {% endblock %}
 
 {% block content %}
-<div class="auth">
-  <div class="auth__container">
 
-    <h2 class="auth__title">Đăng ký</h2>
-
-    {% if errors %}
-      {% for error in errors %}
-        <div class="alert alert--error">{{ error }}</div>
-      {% endfor %}
-    {% endif %}
-
-    <form method="POST" class="auth__form">
-
-      <div class="form-group">
-        <label>Email (không bắt buộc)</label>
-        <input name="email">
+<div class="auth-page auth-page--seller">
+  <div class="auth-page__header">
+    <div class="auth-page__brand">Shopee <span>Đăng ký</span></div>
+    <a href="#">Bạn cần giúp đỡ?</a>
+  </div>
+  <div class="auth auth--split">
+    <section class="auth__hero auth__hero--seller">
+      <h3>Shopee Việt Nam</h3>
+      <h2>Trở thành Người bán ngay hôm nay</h2>
+      <p>Nền tảng thương mại điện tử hàng đầu Đông Nam Á và Đài Loan</p>
+      <p>Phát triển trở thành thương hiệu toàn cầu</p>
+      <p>Dẫn đầu lượng người dùng trên ứng dụng mua sắm tại Việt Nam</p>
+    </section>
+    <section class="auth__container">
+      <h2 class="auth__title">Đăng ký</h2>
+      {% if errors %}
+        {% for error in errors %}
+          <div class="alert alert--error">{{ error }}</div>
+        {% endfor %}
+      {% endif %}
+      <form method="POST" class="auth__form">
+        <div class="form-group">
+          <input name="email" placeholder="Email" value="{{ data.email if data else '' }}">
+        </div>
+        <div class="form-group">
+          <input name="phone" placeholder="Số điện thoại" value="{{ data.phone if data else '' }}">
+        </div>
+        <div class="form-group">
+          <input name="full_name" placeholder="Họ và tên" value="{{ data.full_name if data else '' }}" required>
+        </div>
+        <div class="form-group">
+          <input type="password" name="password" placeholder="Mật khẩu" required>
+        </div>
+        <div class="form-group">
+          <input type="password" name="confirm_password" placeholder="Xác nhận mật khẩu" required>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">TIẾP THEO</button>
+      </form>
+      <div class="auth__links">
+        Bằng việc đăng kí, bạn đã đồng ý với Shopee về Điều khoản dịch vụ & Chính sách bảo mật
       </div>
 
-      <div class="form-group">
-        <label>Số điện thoại (không bắt buộc)</label>
-        <input name="phone">
-      </div>
-
-      <div class="form-group">
-        <label>Họ tên</label>
-        <input name="full_name" required>
-      </div>
-
-      <div class="form-group">
-        <label>Mật khẩu</label>
-        <input type="password" name="password" required>
-      </div>
-
-      <button type="submit" class="btn btn--primary btn--block">
-        Đăng ký
-      </button>
-
-    </form>
-
-    <div class="auth__links">
-      Đã có tài khoản?
-      <a href="{{ url_for('auth.login') }}">Đăng nhập</a>
-    </div>
-
+      <div class="auth__links">Bạn đã có tài khoản? <a href="{{ url_for('auth.login') }}">Đăng nhập</a></div>
+    </section>
   </div>
 </div>
 {% endblock %}

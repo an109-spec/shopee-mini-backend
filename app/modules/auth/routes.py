@@ -41,10 +41,11 @@ def register():
         return render_template("auth/register.html")
 
     data = request.form.to_dict()
-
+    if (data.get("password") or "") != (data.get("confirm_password") or ""):
+        return render_template("auth/register.html", errors=["Mật khẩu xác nhận không khớp"], data=data)
     errors = validate_register(data)
     if errors:
-        return render_template("auth/register.html", errors=errors)
+        return render_template("auth/register.html", errors=errors, data=data)
 
     dto = RegisterDTO(
         email=data.get("email") or None,
@@ -56,10 +57,10 @@ def register():
     try:
         user = AuthService.register(dto)
         session["user_id"] = user.id
-        return redirect(url_for("seller.seller_center"))
+        return redirect(url_for("home.home_page"))
 
     except ConflictError as e:
-        return render_template("auth/register.html", errors=[str(e)])
+        return render_template("auth/register.html", errors=[str(e)], data=data)
 
 
 # ======================================================
@@ -103,15 +104,16 @@ def login():
         shop = Shop.query.filter_by(owner_id=user.id).first()
 
         # admin
-        if user.role == "admin":
-            return redirect("/admin")
+        if next_url:
+            return redirect(next_url)
 
-        # có shop → seller center
-        if shop:
-            return redirect(url_for("seller.seller_center"))
+        if role == "seller":
+            if shop:
+                return redirect(url_for("seller.seller_center"))
+            return redirect(url_for("seller.register_shop"))
 
-        # không có shop → buyer
-        return redirect(url_for("user.user_center_page"))
+        return redirect(url_for("home.home_page"))
+
 
     except (ValidationError, UnauthorizedError) as e:
         return render_template(

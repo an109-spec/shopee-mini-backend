@@ -16,7 +16,7 @@ class User(BaseModel):
         db.Enum("user", "admin", "seller", name="user_roles"),
         default="user"
     )
-
+    is_seller = db.Column(db.Boolean, default=False, nullable=False)
     failed_login_attempts = db.Column(db.Integer, default=0)
     last_failed_login = db.Column(db.DateTime, nullable=True)
     locked_until = db.Column(db.DateTime, nullable=True)

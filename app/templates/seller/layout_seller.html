@@ -1,40 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-
-<link rel="stylesheet"
-href="{{ url_for('static', filename='css/seller.css') }}">
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Kênh Người Bán{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/seller.css') }}">
 
 </head>
 
 <body>
+<header class="seller-topbar">
+    <div class="seller-topbar__inner">
+      <div class="seller-topbar__brand">
+        <a href="{{ url_for('home.home_page') }}">Shopee</a>
+          <span>Kênh Người Bán</span>
+      </div>
+      <div class="seller-topbar__user">{{ current_user.username if current_user else 'Seller' }}</div>
+    </div>
+  </header>
 
-<div class="seller-container">
+<main class="seller-main">{% block content %}{% endblock %}</main>
 
-<aside class="seller-sidebar">
-
-<h2>Seller Center</h2>
-
-<a href="/seller/dashboard">Dashboard</a>
-<a href="/seller/products">Products</a>
-<a href="/seller/orders">Orders</a>
-<a href="/seller/shop">Shop</a>
-
-</aside>
-
-<main class="seller-main">
-
-{% block content %}
-
-{% endblock %}
-
-</main>
-
-</div>
-
-<script src="{{ url_for('static', filename='js/seller.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/seller.js') }}"></script>
 
 </body>
 </html>

@@ -1,153 +1,227 @@
-/* ===============================
-SELLER LAYOUT
-=============================== */
-
-.seller-container {
-    display: flex;
-    min-height: 100vh;
+body {
+  margin: 0;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 14px;
+  color: #333;
+  background: #f6f6f6;
 }
-
-/* ===============================
-SIDEBAR
-=============================== */
-
-.seller-sidebar {
-    width: 240px;
-    background: #1e293b;
-    color: white;
-    padding: 20px;
+.seller-topbar {
+  border-bottom: 1px solid #e5e5e5;
+  background: #fff;
 }
-
-.seller-sidebar h2 {
-    font-size: 20px;
-    margin-bottom: 20px;
+.seller-topbar__inner {
+  height: 64px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
-
-.seller-sidebar a {
-    display: block;
-    padding: 10px;
-    color: #e2e8f0;
-    text-decoration: none;
-    border-radius: 6px;
-    margin-bottom: 5px;
+.seller-topbar__brand {
+  font-size: 28px;
+  color: #ee4d2d;
 }
-
-.seller-sidebar a:hover {
-    background: #334155;
+.seller-topbar__brand span {
+  color: #333;
+  margin-left: 8px;
+  font-size: 34px;
 }
-
-.seller-sidebar a.active {
-    background: #2563eb;
-}
-
-/* ===============================
-MAIN
-=============================== */
-
 .seller-main {
-    flex: 1;
-    padding: 30px;
-    background: #f1f5f9;
+      max-width: 1200px;
+  margin: 22px auto;
+  padding: 0 16px;
+}
+.seller-onboard {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 3px;
+  padding: 24px;
+}
+.seller-onboard h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+.seller-steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.seller-steps li {
+  text-align: center;
+  border-top: 3px solid #ddd;
+  color: #999;
+  padding-top: 8px;
+}
+.seller-steps li.is-active {
+  color: #333;
+  border-top-color: #ee4d2d;
+}
+.seller-form {
+  display: grid;
+  gap: 12px;
+  max-width: 760px;
+}
+.seller-form input,
+.seller-form textarea {
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  padding: 10px;
+  font-size: 14px;
+}
+.seller-form textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+.seller-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.btn {
+  display: inline-block;
+  text-decoration: none;
+  padding: 10px 16px;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  color: #333;
+  background: #fff;
+  cursor: pointer;
+}
+.btn--primary {
+  border-color: #ee4d2d;
+  background: #ee4d2d;
+  color: #fff;
+}
+.alert {
+  background: #fff0f0;
+  color: #b73333;
+  border: 1px solid #efbebe;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+.pickup-card{
+    border:1px solid #ddd;
+    padding:16px;
+    border-radius:4px;
+    background:#fff;
 }
 
-/* ===============================
-CARDS
-=============================== */
-
-.dashboard-cards {
-    display: grid;
-    grid-template-columns: repeat(4,1fr);
-    gap: 20px;
+.pickup-user{
+    font-weight:600;
+    margin-bottom:6px;
 }
 
-.dashboard-card {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
+.pickup-address{
+    color:#333;
+    margin-bottom:8px;
 }
 
-.dashboard-card h3 {
-    font-size: 14px;
-    color: gray;
+.edit-address-btn{
+    color:#ee4d2d;
+    background:none;
+    border:none;
+    cursor:pointer;
 }
 
-.dashboard-card p {
-    font-size: 22px;
-    font-weight: bold;
+.address-modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.4);
+    display:none;
+    align-items:center;
+    justify-content:center;
 }
 
-/* ===============================
-TABLE
-=============================== */
-
-.seller-table {
-    width: 100%;
-    background: white;
-    border-radius: 10px;
-    border-collapse: collapse;
+.modal-content{
+    background:#fff;
+    padding:24px;
+    width:500px;
+    border-radius:6px;
+}
+.address-selector{
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
 }
 
-.seller-table th,
-.seller-table td {
-    padding: 12px;
-    border-bottom: 1px solid #eee;
+.address-selector select{
+    flex:1;
+    padding:8px;
+    border:1px solid #ddd;
+    border-radius:4px;
+}
+.modal-content{
+    background:#fff;
+    padding:24px;
+    width:520px;
+    border-radius:8px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.15);
 }
 
-.seller-table th {
-    background: #f8fafc;
-    text-align: left;
+.modal-content h3{
+    margin-top:0;
+    margin-bottom:16px;
 }
 
-/* ===============================
-BUTTON
-=============================== */
-
-.btn-seller {
-    background: #2563eb;
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
+.modal-actions{
+    margin-top:20px;
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
 }
 
-.btn-seller-danger {
-    background: #dc2626;
+.modal-actions button{
+    padding:8px 16px;
+    border-radius:4px;
 }
-/* ===============================
-SHIPPING SETUP
-=============================== */
+/* shipping setup */
 
-.shipping-box{
-    background:white;
-    padding:20px;
-    border-radius:10px;
+.shipping-card{
+    border:1px solid #e5e5e5;
+    border-radius:6px;
+    overflow:hidden;
+    margin-top:20px;
+    background:#fff;
 }
 
-.shipping-item{
+.shipping-row{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    padding:15px 10px;
+    padding:18px 20px;
     border-bottom:1px solid #eee;
 }
 
-.shipping-item:last-child{
+.shipping-row:last-child{
     border-bottom:none;
 }
 
-.shipping-cod{
-    color:#16a34a;
-    font-size:13px;
-    margin-left:10px;
+.shipping-info{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
 }
 
-/* Toggle Switch */
+.shipping-info strong{
+    font-size:15px;
+}
+
+.shipping-cod{
+    font-size:13px;
+    color:#ee4d2d;
+}
+
+/* switch */
 
 .switch{
     position:relative;
     display:inline-block;
-    width:45px;
+    width:46px;
     height:24px;
 }
 
@@ -160,13 +234,10 @@ SHIPPING SETUP
 .slider{
     position:absolute;
     cursor:pointer;
-    top:0;
-    left:0;
-    right:0;
-    bottom:0;
+    inset:0;
     background:#ccc;
-    transition:.3s;
-    border-radius:30px;
+    border-radius:24px;
+    transition:0.3s;
 }
 
 .slider:before{
@@ -177,14 +248,14 @@ SHIPPING SETUP
     left:3px;
     bottom:3px;
     background:white;
-    transition:.3s;
     border-radius:50%;
+    transition:0.3s;
 }
 
-input:checked + .slider{
-    background:#22c55e;
+.switch input:checked + .slider{
+    background:#26c281;
 }
 
-input:checked + .slider:before{
-    transform:translateX(20px);
+.switch input:checked + .slider:before{
+    transform:translateX(22px);
 }

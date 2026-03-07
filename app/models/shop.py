@@ -13,6 +13,15 @@ class Shop(BaseModel):
     )
 
     name = db.Column(db.String(150), nullable=False)
+    pickup_address = db.Column(db.Text)
+    contact_email = db.Column(db.String(120))
+    contact_phone = db.Column(db.String(20))
+    legal_id = db.Column(db.String(50))
+    legal_name = db.Column(db.String(150))
+    tax_code = db.Column(db.String(50))
+    tax_address = db.Column(db.Text)
+    onboarding_step = db.Column(db.Integer, default=1, nullable=False)
+    onboarding_completed = db.Column(db.Boolean, default=False, nullable=False)
     logo = db.Column(db.String(255))
     banner = db.Column(db.String(255))
     rating = db.Column(db.Numeric(3, 2), default=0.00)
@@ -24,6 +33,7 @@ class Shop(BaseModel):
     shipping_same_day = db.Column(db.Boolean, default=True)
     shipping_express = db.Column(db.Boolean, default=True)
     shipping_self_delivery = db.Column(db.Boolean, default=False)
+    shipping_pickup_point = db.Column(db.Boolean, default=False)
     shipping_bulky = db.Column(db.Boolean, default=False)
 
     shipping_configured = db.Column(db.Boolean, default=False)

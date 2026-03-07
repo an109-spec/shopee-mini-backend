@@ -56,7 +56,23 @@ def create_app():
 
     @app.context_processor
     def inject_globals():
-        return {"current_year": datetime.now().year}
+        from flask import session
+        from app.models import User, Shop
+
+        current_user = None
+        current_shop = None
+        user_id = session.get("user_id")
+
+        if user_id:
+            current_user = User.query.get(user_id)
+            if current_user:
+                current_shop = Shop.query.filter_by(owner_id=current_user.id).first()
+
+        return {
+            "current_year": datetime.now().year,
+            "current_user": current_user,
+            "current_shop": current_shop,
+        }
 
     if app.config["DEBUG"]:
         print("DB URI:", app.config["SQLALCHEMY_DATABASE_URI"])

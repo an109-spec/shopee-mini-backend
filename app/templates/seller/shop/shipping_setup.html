@@ -2,73 +2,89 @@
 
 {% block content %}
 
+<div class="seller-onboard">
+
 <h2>Cài đặt vận chuyển</h2>
 
-<div class="shipping-box">
+<form method="post">
 
-    <div class="shipping-item">
-        <div>
+<div class="shipping-card">
+
+    <div class="shipping-row">
+        <div class="shipping-info">
             <strong>Hỏa Tốc</strong>
-            <span class="shipping-cod">COD đã bật</span>
+            <span class="shipping-cod">COD đã được kích hoạt</span>
         </div>
 
         <label class="switch">
-            <input type="checkbox" checked>
+            <input type="checkbox" name="hoa_toc" checked>
             <span class="slider"></span>
         </label>
     </div>
 
-
-    <div class="shipping-item">
-        <div>
+    <div class="shipping-row">
+        <div class="shipping-info">
             <strong>Trong Ngày</strong>
-            <span class="shipping-cod">COD đã bật</span>
+            <span class="shipping-cod">COD đã được kích hoạt</span>
         </div>
 
         <label class="switch">
-            <input type="checkbox" checked>
+            <input type="checkbox" name="trong_ngay" checked>
             <span class="slider"></span>
         </label>
     </div>
 
-
-    <div class="shipping-item">
-        <div>
+    <div class="shipping-row">
+        <div class="shipping-info">
             <strong>Nhanh</strong>
-            <span class="shipping-cod">COD đã bật</span>
+            <span class="shipping-cod">COD đã được kích hoạt</span>
         </div>
 
         <label class="switch">
-            <input type="checkbox" checked>
+            <input type="checkbox" name="nhanh" checked>
             <span class="slider"></span>
         </label>
     </div>
 
-
-    <div class="shipping-item">
-        <div>
+    <div class="shipping-row">
+        <div class="shipping-info">
             <strong>Tự Nhận Hàng</strong>
-            <span class="shipping-cod">COD đã bật</span>
+            <span class="shipping-cod">COD đã được kích hoạt</span>
         </div>
 
         <label class="switch">
-            <input type="checkbox">
+            <input type="checkbox" name="tu_nhan">
             <span class="slider"></span>
         </label>
     </div>
 
-
-    <div class="shipping-item">
-        <div>
+    <div class="shipping-row">
+        <div class="shipping-info">
             <strong>Hàng Cồng Kềnh</strong>
-            <span class="shipping-cod">COD đã bật</span>
+            <span class="shipping-cod">COD đã được kích hoạt</span>
         </div>
 
         <label class="switch">
-            <input type="checkbox">
+            <input type="checkbox" name="cong_kenh">
             <span class="slider"></span>
         </label>
     </div>
+
+</div>
+
+<div class="seller-actions">
+
+    <a href="{{ url_for('seller.register_shop') }}" class="btn">
+    Quay lại
+</a>
+
+    <button type="submit" class="btn btn--primary">
+        Hoàn thành
+    </button>
+
+</div>
+
+</form>
 
 </div>
 

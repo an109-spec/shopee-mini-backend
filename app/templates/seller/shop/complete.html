@@ -1,0 +1,20 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block content %}
+<div class="seller-onboard">
+  <h2>Hoàn tất đăng ký bán hàng</h2>
+
+  <ol class="seller-steps">
+    {% for step in steps %}
+      <li class="{{ 'is-active' if step.index == 5 else '' }}">{{ step.label }}</li>
+    {% endfor %}
+  </ol>
+
+  <p>Shop <strong>{{ shop.name }}</strong> đã được kích hoạt quyền bán hàng.</p>
+  <p>Tài khoản của bạn vẫn là user, chỉ bật thêm quyền bán hàng (<code>is_seller=true</code>).</p>
+
+  <div class="seller-actions">
+    <a class="btn btn--primary" href="{{ url_for('seller.dashboard') }}">Vào Seller Center</a>
+  </div>
+</div>
+{% endblock %}

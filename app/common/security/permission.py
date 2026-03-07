@@ -1,6 +1,5 @@
 from functools import wraps
 from flask import session, redirect, url_for
-from app.models import User
 from app.common.exceptions import ForbiddenError
 from app.models import User, Shop
 
@@ -46,11 +45,15 @@ def seller_required(func):
         if not user:
             return redirect(url_for("auth.login", role="seller"))
 
-        # kiểm tra shop
         shop = Shop.query.filter_by(owner_id=user.id).first()
 
         if not shop:
             return redirect(url_for("seller.register_shop"))
+        if not user.is_seller:
+            return redirect(url_for("seller.register_shop"))
+
+        if not shop.onboarding_completed:
+            return redirect(url_for("seller.seller_center"))
 
         return func(*args, **kwargs)
 
