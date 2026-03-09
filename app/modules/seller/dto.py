@@ -1,5 +1,17 @@
 from dataclasses import dataclass
+from typing import List, Optional
+from decimal import Decimal
 
+
+@dataclass
+class SellerProductCreateDTO:
+
+    name: str
+    description: Optional[str]
+    price: Decimal
+    stock: int
+    category_id: Optional[int]
+    images: List[str]
 
 @dataclass
 class CreateShopDTO:
@@ -24,3 +36,12 @@ class CreateProductDTO:
     price: float
     stock: int
     description: str | None = None
+@dataclass
+class SellerProductCreateDTO:
+
+    name: str
+    description: Optional[str]
+    price: Decimal
+    stock: int
+    category_id: Optional[int]
+    images: List[str]

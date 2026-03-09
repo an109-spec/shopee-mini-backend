@@ -14,10 +14,3 @@ class BaseModel(db.Model):
         nullable=False
     )
 
-
-@event.listens_for(BaseModel, "before_insert", propagate=True)
-def assign_bigint_id(mapper, connection, target):
-    if getattr(target, "id", None) is not None:
-        return
-    max_id = connection.execute(select(func.max(target.__table__.c.id))).scalar()
-    target.id = (max_id or 0) + 1

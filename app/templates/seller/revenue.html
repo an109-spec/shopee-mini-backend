@@ -1,0 +1,11 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block seller_content %}
+<h2>Doanh thu</h2>
+<p>Tổng đơn hoàn tất: {{ summary.orders }}</p>
+<p>Doanh thu: {{ summary.revenue }}</p>
+<p>Phí nền tảng: {{ summary.platform_fee }}</p>
+<p>Phí vận chuyển: {{ summary.shipping }}</p>
+<p>Lợi nhuận: {{ summary.profit }}</p>
+<p><b>{{ summary.formula }}</b></p>
+{% endblock %}

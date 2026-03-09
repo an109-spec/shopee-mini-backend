@@ -2,34 +2,162 @@
 
 {% block seller_content %}
 
-<h2>Sửa sản phẩm</h2>
+<form method="POST" enctype="multipart/form-data" class="seller-form">
 
-<form method="post">
+<div class="product-form">
 
-<div>
-<label>Tên</label>
-<input name="name" value="{{ product.name }}">
+<!-- ================= PRODUCT INFO ================= -->
+
+<div class="form-group">
+<label>Tên sản phẩm</label>
+<input type="text" name="name" value="{{ product.name }}" required>
 </div>
 
-<div>
-<label>Giá</label>
-<input name="price" value="{{ product.price }}">
-</div>
-
-<div>
-<label>Tồn kho</label>
-<input name="stock" value="{{ product.stock }}">
-</div>
-
-<div>
+<div class="form-group">
 <label>Mô tả</label>
 <textarea name="description">{{ product.description }}</textarea>
 </div>
 
-<button type="submit">
-Cập nhật
+
+<!-- ================= IMAGE UPLOAD ================= -->
+
+<h3>Ảnh sản phẩm</h3>
+
+<div class="upload-area" id="uploadArea">
+
+<input type="file"
+name="images[]"
+id="imageInput"
+multiple
+hidden>
+
+<div class="upload-text">
+Kéo ảnh vào đây hoặc click để upload
+</div>
+
+</div>
+
+<div id="previewImages" class="preview-grid">
+
+{% for img in product.images %}
+<img src="{{ img.image_url }}">
+{% endfor %}
+
+</div>
+
+
+
+<!-- ================= VARIANT GENERATOR ================= -->
+
+<h3>Phân loại hàng</h3>
+
+<div class="variant-generator">
+
+<div class="form-group">
+<label>Size (S,M,L)</label>
+<input type="text" id="sizeInput" placeholder="S,M,L">
+</div>
+
+<div class="form-group">
+<label>Màu sắc (Red,Blue)</label>
+<input type="text" id="colorInput" placeholder="Red,Blue">
+</div>
+
+<div class="form-group">
+<button type="button" class="btn" onclick="generateVariants()">
+Tạo phân loại
+</button>
+</div>
+
+</div>
+
+
+
+<!-- ================= BULK EDIT ================= -->
+
+<div class="bulk-edit">
+
+<input id="bulkPrice" placeholder="Giá tất cả">
+
+<input id="bulkStock" placeholder="Tồn kho tất cả">
+
+<button type="button" onclick="setBulkPrice()">Áp dụng</button>
+
+</div>
+
+
+
+<!-- ================= VARIANT TABLE ================= -->
+
+<table class="variant-table">
+
+<thead>
+<tr>
+<th>Ảnh</th>
+<th>Size</th>
+<th>Màu</th>
+<th>Giá</th>
+<th>Tồn kho</th>
+<th></th>
+</tr>
+</thead>
+
+<tbody id="variantBody">
+
+{% for v in variants %}
+<tr>
+
+<td>
+<input type="file" name="variant_image[]" accept="image/*">
+</td>
+
+<td>
+<input name="variant_size[]" value="{{ v.get_attr('size') }}">
+</td>
+
+<td>
+<input name="variant_color[]" value="{{ v.get_attr('color') }}">
+</td>
+
+<td>
+<input type="number" name="variant_price[]" value="{{ v.price }}">
+</td>
+
+<td>
+<input type="number" name="variant_stock[]" value="{{ v.stock }}">
+</td>
+
+<td>
+<button type="button" onclick="removeVariant(this)">X</button>
+</td>
+
+</tr>
+{% endfor %}
+</tbody>
+
+</table>
+
+
+
+<!-- ================= ACTION BUTTONS ================= -->
+
+<div class="form-actions">
+
+<a href="/seller/products" class="btn btn--secondary">
+← Quay lại
+</a>
+
+<button type="button" class="add-btn" onclick="addVariant()">
++ Thêm phân loại
 </button>
 
-</form>
+<button type="submit" class="btn btn--primary">
+Lưu sản phẩm
+</button>
 
+</div>
+
+
+</div>
+</form>
 {% endblock %}

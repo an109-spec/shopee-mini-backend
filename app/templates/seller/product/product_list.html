@@ -2,40 +2,118 @@
 
 {% block seller_content %}
 
+<div style="display:flex; justify-content:space-between; align-items:center;">
 <h2>Danh sách sản phẩm</h2>
 
-<a href="/seller/products/create">
-Thêm sản phẩm
+<a href="{{ url_for('seller.create_product') }}" class="btn btn--primary">
++ Thêm sản phẩm
 </a>
+</div>
 
-<table>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+
+<div class="alert alert-{{ category }}">
+{{ message }}
+</div>
+
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+
+<table class="product-table">
 
 <tr>
 <th>ID</th>
 <th>Tên</th>
 <th>Giá</th>
 <th>Tồn kho</th>
-<th>Hành động</th>
+<th>Trạng thái</th>
+<th>Action</th>
 </tr>
 
-{% for product in products %}
+{% for p in products %}
 
 <tr>
 
-<td>{{ product.id }}</td>
+<td>{{ p.id }}</td>
 
-<td>{{ product.name }}</td>
+<td>{{ p.name }}</td>
 
-<td>{{ product.price }}</td>
+<td>{{ "{:,.0f}".format(p.price) }} VND</td>
 
-<td>{{ product.stock_quantity }}</td>
+<td>{{ p.stock }}</td>
 
-<td>{{ product.status.value if product.status else "ACTIVE" }}</td>
 
 <td>
-<a href="/seller/products/{{product.id}}">Xem</a>
-<a href="/seller/products/edit/{{product.id}}">Sửa</a>
-<a href="/seller/products/{{product.id}}/delete">Xoá mềm</a>
+
+{% if p.status == "ACTIVE" %}
+<span class="status active">Đang bán</span>
+
+{% elif p.status == "OUT_OF_STOCK" %}
+<span class="status out">Hết hàng</span>
+
+{% elif p.status == "HIDDEN" %}
+<span class="status hidden">Đã ẩn</span>
+
+{% elif p.status == "DRAFT" %}
+<span class="status draft">Nháp</span>
+
+{% else %}
+<span>{{ p.status }}</span>
+
+{% endif %}
+
+</td>
+
+
+<td class="actions">
+
+<a href="{{ url_for('seller.edit_product', pid=p.id) }}">
+Update
+</a>
+
+<a href="{{ url_for('seller.delete_product', pid=p.id) }}"
+onclick="return confirm('Xóa sản phẩm?')">
+Delete
+</a>
+
+
+{% if p.status == "ACTIVE" %}
+
+<a href="{{ url_for('seller.hide_product', pid=p.id) }}">
+Hide
+</a>
+
+{% elif p.status == "HIDDEN" %}
+
+<a href="{{ url_for('seller.activate_product', pid=p.id) }}">
+Show
+</a>
+
+{% elif p.status == "OUT_OF_STOCK" %}
+
+<form action="{{ url_for('seller.restock_product', pid=p.id) }}" 
+      method="post" 
+      style="display:inline;">
+
+<input type="number"
+       name="quantity"
+       min="1"
+       required
+       placeholder="Số lượng"
+       style="width:70px;">
+
+<button type="submit">
+Restock
+</button>
+
+</form>
+
+{% endif %}
 
 </td>
 

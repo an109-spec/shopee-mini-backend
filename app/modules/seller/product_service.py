@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from decimal import Decimal
 import re
 
-from app.common.exceptions import ForbiddenError, NotFoundError, ValidationError
+from app.common.exceptions import ForbiddenError, NotFoundError, ValidationError, AppException
 from app.core.enums.product_status import ProductStatus
 from app.models import Product
-
+from app.models.product import ProductVariant
 from .repository import SellerRepository
 
 
@@ -50,16 +50,18 @@ class SellerProductService:
         if product.shop_id != shop_id:
             raise ForbiddenError("Bạn không có quyền thao tác sản phẩm này")
 
+    # ================= CREATE PRODUCT =================
+
     @staticmethod
     def create(shop_id: int, dto: SellerProductCreateDTO):
+
         if not dto.name or len(dto.name.strip()) < 3:
             raise ValidationError("Tên sản phẩm tối thiểu 3 ký tự")
-        SellerProductService._validate_price(dto.price)
-        SellerProductService._validate_stock(dto.stock)
 
         slug_base = SellerProductService._slugify(dto.name)
         slug = slug_base
         idx = 1
+
         while Product.query.filter_by(slug=slug).first():
             idx += 1
             slug = f"{slug_base}-{idx}"
@@ -69,87 +71,234 @@ class SellerProductService:
             name=dto.name.strip(),
             slug=slug,
             description=dto.description,
-            price=dto.price,
-            stock_quantity=dto.stock,
-            category_id=dto.category_id,
             thumbnail=dto.images[0] if dto.images else None,
             status=ProductStatus.ACTIVE,
         )
+
         SellerRepository.create_product(product)
+
+        # tạo variants
+        SellerRepository.create_product_variants(product.id, dto.variants)
+
         if dto.images:
             SellerRepository.create_product_images(product.id, dto.images)
+
         SellerRepository.commit()
 
         return {
             "id": product.id,
             "name": product.name,
-            "status": product.status.value,
-            "index_updated": True,
+            "status": product.status.value
         }
+
+    # ================= LIST PRODUCTS =================
 
     @staticmethod
     def list_products(shop_id: int):
+
         products = SellerRepository.list_products(shop_id)
-        return [
-            {
+
+        result = []
+
+        for p in products:
+
+            variants = p.variants
+
+            price = min(v.price for v in variants) if variants else 0
+            stock = sum(v.stock for v in variants) if variants else 0
+
+            result.append({
                 "id": p.id,
                 "name": p.name,
-                "price": float(p.price),
-                "stock": p.stock_quantity,
+                "price": float(price),
+                "stock": stock,
                 "status": p.status.value,
-            }
-            for p in products
-        ]
+            })
+
+        return result
+
+    # ================= UPDATE PRODUCT =================
 
     @staticmethod
     def update(shop_id: int, dto: SellerProductUpdateDTO):
-        product = SellerRepository.get_product(dto.product_id)
+
+        product = SellerRepository.get_product(shop_id, dto.product_id)
+
         if not product or product.status == ProductStatus.DELETED:
             raise NotFoundError("Không tìm thấy sản phẩm")
+
         SellerProductService._check_ownership(product, shop_id)
 
         if dto.name is not None:
+            if len(dto.name.strip()) < 3:
+                raise ValidationError("Tên sản phẩm tối thiểu 3 ký tự")
             product.name = dto.name.strip()
+
         if dto.description is not None:
             product.description = dto.description
+
         if dto.price is not None:
             SellerProductService._validate_price(dto.price)
             product.price = dto.price
+
         if dto.stock is not None:
             SellerProductService._validate_stock(dto.stock)
+
             product.stock_quantity = dto.stock
+
+            if dto.stock == 0:
+                product.status = ProductStatus.OUT_OF_STOCK
+            elif product.status == ProductStatus.OUT_OF_STOCK:
+                product.status = ProductStatus.ACTIVE
+
         if dto.category_id is not None:
             product.category_id = dto.category_id
 
         SellerRepository.commit()
-        return {"id": product.id, "updated": True}
+
+        return {
+            "id": product.id,
+            "updated": True
+        }
+
+    # ================= UPDATE STOCK =================
 
     @staticmethod
     def update_stock(shop_id: int, product_id: int, stock: int):
+
         SellerProductService._validate_stock(stock)
+
         product = SellerRepository.get_product(product_id)
+
         if not product or product.status == ProductStatus.DELETED:
             raise NotFoundError("Không tìm thấy sản phẩm")
+
         SellerProductService._check_ownership(product, shop_id)
 
         product.stock_quantity = stock
+
+        if stock == 0:
+            product.status = ProductStatus.OUT_OF_STOCK
+        elif product.status == ProductStatus.OUT_OF_STOCK:
+            product.status = ProductStatus.ACTIVE
+
         SellerRepository.commit()
-        return {"id": product.id, "stock": product.stock_quantity}
+
+        return {
+            "id": product.id,
+            "stock": product.stock_quantity
+        }
+
+    # ================= UPDATE STATUS =================
 
     @staticmethod
     def update_status(shop_id: int, product_id: int, status: str):
-        if status not in {ProductStatus.ACTIVE.value, ProductStatus.HIDDEN.value, ProductStatus.DELETED.value}:
+
+        allowed_status = {
+            ProductStatus.ACTIVE.value,
+            ProductStatus.HIDDEN.value,
+            ProductStatus.DRAFT.value,
+            ProductStatus.OUT_OF_STOCK.value,
+            ProductStatus.DELETED.value,
+        }
+
+        if status not in allowed_status:
             raise ValidationError("Trạng thái không hợp lệ")
 
-        product = SellerRepository.get_product(product_id)
+        product = SellerRepository.get_product(shop_id, product_id)
+
         if not product:
             raise NotFoundError("Không tìm thấy sản phẩm")
+
         SellerProductService._check_ownership(product, shop_id)
 
+        # logic tồn kho
+        total_stock = sum(v.stock for v in product.variants)
+
+        if total_stock == 0 and status == ProductStatus.ACTIVE.value:
+            status = ProductStatus.OUT_OF_STOCK.value
+
+        elif total_stock > 0 and status == ProductStatus.OUT_OF_STOCK.value:
+            status = ProductStatus.ACTIVE.value
+
         product.status = ProductStatus(status)
+
         SellerRepository.commit()
-        return {"id": product.id, "status": product.status.value}
+
+        return {
+            "id": product.id,
+            "status": product.status.value
+        }
+    # ================= SOFT DELETE =================
 
     @staticmethod
     def soft_delete(shop_id: int, product_id: int):
-        return SellerProductService.update_status(shop_id, product_id, ProductStatus.DELETED.value)
+
+        product = SellerRepository.get_product(product_id)
+
+        if not product:
+            raise NotFoundError("Không tìm thấy sản phẩm")
+
+        SellerProductService._check_ownership(product, shop_id)
+
+        product.status = ProductStatus.DELETED
+
+        SellerRepository.commit()
+
+        return {
+            "id": product.id,
+            "deleted": True
+        }
+    @staticmethod
+    def restock(shop_id: int, product_id: int, quantity: int):
+
+        if quantity <= 0:
+            raise ValidationError("Số lượng nhập thêm phải > 0")
+
+        product = SellerRepository.get_product(shop_id, product_id)
+
+        if not product:
+            raise NotFoundError("Không tìm thấy sản phẩm")
+
+        SellerProductService._check_ownership(product, shop_id)
+
+        for v in product.variants:
+            v.stock += quantity
+
+        total_stock = sum(v.stock for v in product.variants)
+
+        if total_stock > 0 and product.status == ProductStatus.OUT_OF_STOCK:
+            product.status = ProductStatus.ACTIVE
+
+        SellerRepository.commit()
+
+        return {
+            "id": product.id,
+            "stock_quantity": sum(v.stock for v in product.variants),
+            "status": product.status.value
+        }
+    @staticmethod
+    def update_variants(shop_id, product_id, name, description, variants):
+
+        product = SellerRepository.get_product(shop_id, product_id)
+
+        if not product:
+            raise NotFoundError("Không tìm thấy sản phẩm")
+
+        product.name = name
+        product.description = description
+
+        # xóa variant cũ
+        SellerRepository.delete_variants(product_id)
+
+        # tạo lại variant
+        SellerRepository.create_product_variants(product_id, variants)
+
+        SellerRepository.commit()
+@dataclass
+class SellerProductCreateDTO:
+    name: str
+    description: str | None
+    category_id: int | None
+    images: list[str]
+    variants: list[dict]

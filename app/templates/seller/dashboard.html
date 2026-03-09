@@ -1,37 +1,30 @@
 {% extends "seller/layout_seller.html" %}
 
 {% block title %}Seller Dashboard{% endblock %}
-
-{% block content %}
-
-<h1>Seller Dashboard</h1>
+{% block seller_content %}
+<h2>Dashboard</h2>
 
 <div class="dashboard-cards">
-
-<div class="dashboard-card">
-<h3>Doanh thu hôm nay</h3>
-<p>{{ today_revenue }}đ</p>
+     <div class="dashboard-card"><h4>Chờ xác nhận</h4><p>{{ todo.pending }}</p></div>
+  <div class="dashboard-card"><h4>Đang chuẩn bị</h4><p>{{ todo.preparing }}</p></div>
+  <div class="dashboard-card"><h4>Đang giao</h4><p>{{ todo.shipping }}</p></div>
+  <div class="dashboard-card"><h4>Hủy</h4><p>{{ todo.cancelled }}</p></div>
 </div>
 
-<div class="dashboard-card">
-<h3>Tổng đơn hàng</h3>
-<p>{{ total_orders }}</p>
+<div class="dashboard-cards">
+  <div class="dashboard-card"><h4>Doanh thu hôm nay</h4><p>{{ today_revenue }}đ</p></div>
+  <div class="dashboard-card"><h4>Số đơn</h4><p>{{ total_orders }}</p></div>
+  <div class="dashboard-card"><h4>Tổng sản phẩm</h4><p>{{ total_products }}</p></div>
 </div>
-
-<div class="dashboard-card">
-<h3>Sản phẩm</h3>
-<p>{{ total_products }}</p>
-</div>
-
-<div class="dashboard-card">
-<h3>Đánh giá</h3>
-<p>{{ rating }}</p>
-</div>
-
-</div>
-
-<br>
-
-<canvas id="revenueChart" height="100"></canvas>
-
+<h3>Đơn hàng gần đây</h3>
+<table>
+  <tr><th>OrderID</th><th>Tổng tiền</th><th>Trạng thái</th></tr>
+  {% for order in recent_orders %}
+  <tr>
+    <td>#{{ order.id }}</td>
+    <td>{{ order.total_price }}</td>
+    <td>{{ order.status.value }}</td>
+  </tr>
+  {% endfor %}
+</table>
 {% endblock %}

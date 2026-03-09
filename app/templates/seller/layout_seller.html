@@ -10,18 +10,37 @@
 
 <body>
 <header class="seller-topbar">
-    <div class="seller-topbar__inner">
-      <div class="seller-topbar__brand">
-        <a href="{{ url_for('home.home_page') }}">Shopee</a>
-          <span>Kênh Người Bán</span>
-      </div>
-      <div class="seller-topbar__user">{{ current_user.username if current_user else 'Seller' }}</div>
+<div class="seller-topbar__inner">
+    <div class="seller-topbar__brand">
+      <a href="{{ url_for('home.home_page') }}">Shopee</a>
+      <span>Kênh Người Bán</span>
     </div>
-  </header>
+    <div class="seller-topbar__meta">
+      <span>{{ current_shop.name if current_shop else 'Shop' }}</span>
+      <span>🔔</span>
+      <span>{{ current_user.username if current_user else 'Seller' }}</span>
+    </div>
+  </div>
+</header>
 
-<main class="seller-main">{% block content %}{% endblock %}</main>
+<main class="seller-main-layout">
+  <aside class="seller-sidebar">
+    <a href="{{ url_for('seller.dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('seller.product_list') }}">Products</a>
+    <a href="{{ url_for('seller.orders_page') }}">Orders</a>
+    <a href="{{ url_for('seller.chat_page') }}">Chat</a>
+    <a href="{{ url_for('seller.shipping_page') }}">Shipping</a>
+    <a href="{{ url_for('seller.promotions_page') }}">Promotions</a>
+    <a href="{{ url_for('seller.revenue_page') }}">Revenue</a>
+    <a href="{{ url_for('seller.shop_settings_page') }}">Shop Settings</a>
+  </aside>
 
-  <script src="{{ url_for('static', filename='js/seller.js') }}"></script>
+  <section class="seller-main-content">
+    {% block seller_content %}{% endblock %}
+  </section>
+</main>
+
+<script src="{{ url_for('static', filename='js/seller.js') }}"></script>
 
 </body>
 </html>

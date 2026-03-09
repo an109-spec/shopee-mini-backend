@@ -1,0 +1,24 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block seller_content %}
+<h2>Cài đặt shop</h2>
+<form id="shopForm" class="seller-form">
+  <label>Tên shop</label>
+  <input name="name" value="{{ shop.name }}">
+  <label>Logo URL</label>
+  <input name="logo" value="{{ shop.logo or '' }}">
+  <label>Mô tả</label>
+  <textarea name="description">{{ shop.description or '' }}</textarea>
+  <label>Địa chỉ</label>
+  <input name="address" value="{{ shop.pickup_address or '' }}">
+  <button class="btn btn--primary" type="button" onclick="saveShop()">Lưu thay đổi</button>
+</form>
+<script>
+function saveShop(){
+  const f = document.getElementById('shopForm');
+  fetch('/seller/api/shop',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    name:f.name.value,logo:f.logo.value,description:f.description.value,address:f.address.value
+  })}).then(()=>location.reload());
+}
+</script>
+{% endblock %}

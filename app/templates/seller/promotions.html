@@ -1,0 +1,29 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block seller_content %}
+<h2>Tạo chương trình khuyến mãi</h2>
+<form id="promotionForm" class="seller-form">
+  <label>Chọn sản phẩm</label>
+  <select name="product_id">
+    {% for p in products %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}
+  </select>
+  <label>Giảm giá (%)</label>
+  <input type="number" name="discount_percent" min="1" max="99">
+  <label>Từ</label><input type="datetime-local" name="start_time">
+  <label>Đến</label><input type="datetime-local" name="end_time">
+  <button class="btn btn--primary" type="button" onclick="savePromotion()">Lưu khuyến mãi</button>
+</form>
+
+<h3>Danh sách khuyến mãi</h3>
+<ul>{% for promo in promotions %}<li>#{{ promo.id }} - Product {{ promo.product_id }} - {{ promo.discount_price }}</li>{% endfor %}</ul>
+<script>
+function savePromotion(){
+  const f = document.getElementById('promotionForm');
+  fetch('/seller/api/promotions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    product_id:f.product_id.value, discount_percent:f.discount_percent.value,
+    start_time:new Date(f.start_time.value).toISOString(),
+    end_time:new Date(f.end_time.value).toISOString()
+  })}).then(()=>location.reload());
+}
+</script>
+{% endblock %}

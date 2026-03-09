@@ -1,7 +1,10 @@
 from app.extensions import db
-from app.common.exceptions import ValidationError
-from app.models import Shop
+from app.common.exceptions import ValidationError, AppException
+from app.models import Shop,Product, ProductImage
 from .dto import CreateShopDTO, ShippingSetupDTO
+from slugify import slugify
+from decimal import Decimal
+from .repository import SellerRepository
 
 class SellerService:
 
@@ -79,3 +82,4 @@ class SellerService:
         db.session.commit()
 
         return shop
+    

@@ -7,95 +7,211 @@
 {% endblock %}
 
 {% block content %}
+
 <div class="user-center">
-  <h1 class="user-center__title">Quản lý tài khoản</h1>
-  <section class="user-card user-profile">
-    <h2>Hồ sơ cá nhân</h2>
-    <div class="profile-view" id="view-profile-section">
-      <div class="user-profile__header">
-        <img id="avatar-preview" src="https://via.placeholder.com/96?text=Avatar" alt="Avatar">
-        <div class="profile-summary">
-          <div class="profile-row"><span class="profile-label">Username</span><span id="profile-username">-</span></div>
-          <div class="profile-row"><span class="profile-label">Email</span><span id="profile-email">-</span></div>
-          <div class="profile-row"><span class="profile-label">Phone</span><span id="profile-phone">-</span></div>
-          <div class="profile-row"><span class="profile-label">Họ tên</span><span id="profile-full-name">-</span></div>
-          <div class="profile-row"><span class="profile-label">Ngày sinh</span><span id="profile-birthday">-</span></div>
-        </div>
-      </div>
 
-      <div class="profile-address-block">
-        <p class="profile-label">Địa chỉ</p>
-        <div id="profile-addresses" class="address-list">-</div>
-      </div>
+<h1 class="user-title">Quản lý tài khoản</h1>
 
-      <button id="btn-edit-profile" class="btn btn--primary">Chỉnh sửa hồ sơ</button>
-    </div>
+<section class="card">
 
-    <div class="profile-edit is-hidden" id="edit-profile-section">
-      <div class="form-group">
-        <label for="edit-username">Username</label>
-        <input id="edit-username" type="text" placeholder="Username">
-      </div>
-      <div class="form-group">
-        <label for="edit-email">Email</label>
-        <input id="edit-email" type="email" placeholder="Email">
-      </div>
-      <div class="form-group">
-        <label for="edit-phone">Số điện thoại</label>
-        <input id="edit-phone" type="text" placeholder="Số điện thoại">
-      </div>
-      <div class="form-group">
-        <label for="edit-full-name">Họ tên</label>
-        <input id="edit-full-name" type="text" placeholder="Họ tên">
-      </div>
-      <div class="form-group">
-        <label for="edit-birthday">Ngày sinh</label>
-        <input id="edit-birthday" type="date">
-      </div>
-      <div class="form-group">
-        <label for="edit-addresses">Địa chỉ (mỗi dòng 1 địa chỉ)</label>
-        <textarea id="edit-addresses" rows="3" placeholder="Ví dụ:
-123 Lê Lợi, Q1
-456 Nguyễn Huệ, Q1"></textarea>
-      </div>
+<h2 class="card-title">Hồ sơ cá nhân</h2>
 
-      <div class="profile-edit__actions">
-        <button id="btn-save-profile" class="btn btn--primary">Lưu hồ sơ</button>
-        <button id="btn-cancel-edit-profile" class="btn btn--outline">Huỷ</button>
-      </div>
-    </div>
-    </section>
+<div id="view-profile-section">
 
-  <section class="user-card">
-    <h2>Đổi avatar</h2>
-    <div class="form-group">
-      <label for="avatar-file">Chọn ảnh từ thư viện</label>
-      <input id="avatar-file" type="file" accept="image/*">
-    </div>
-     <button id="btn-upload-avatar" class="btn btn--secondary">Cập nhật avatar</button>
-  </section>
+<div class="profile-top">
 
-  <section class="user-card">
-    <h2>Đổi mật khẩu</h2>
-    <div class="form-group">
-      <label for="current-password">Mật khẩu hiện tại</label>
-      <input id="current-password" type="password" placeholder="Nhập mật khẩu hiện tại">
-    </div>
-    <div class="form-group">
-      <label for="new-password">Mật khẩu mới</label>
-      <input id="new-password" type="password" placeholder="Tối thiểu 8 ký tự">
-    </div>
-     <button id="btn-change-password" class="btn btn--neutral">Đổi mật khẩu</button>
-  </section>
+<img id="avatar-preview"
+class="avatar"
+src="https://via.placeholder.com/96">
 
-  <section class="user-card">
-    <h2>Lịch sử mua hàng</h2>
-    <button id="btn-load-orders" class="btn btn--outline">Tải lịch sử mua hàng</button>
-    <div id="orders-container" class="orders-container"></div>
-  </section>
+<div class="profile-info">
 
-  <p id="status-message" class="status-message"></p>
+<div class="row">
+<span>Username</span>
+<b id="profile-username"></b>
 </div>
+
+<div class="row">
+<span>Email</span>
+<b id="profile-email"></b>
+</div>
+
+<div class="row">
+<span>Phone</span>
+<b id="profile-phone"></b>
+</div>
+
+<div class="row">
+<span>Họ tên</span>
+<b id="profile-full-name"></b>
+</div>
+
+<div class="row">
+<span>Ngày sinh</span>
+<b id="profile-birthday"></b>
+</div>
+
+</div>
+
+</div>
+
+
+<div class="address-section">
+
+<div class="address-header">
+
+<h3>Địa chỉ</h3>
+
+<button id="btn-add-address" class="btn primary">
++ Thêm địa chỉ
+</button>
+
+</div>
+
+<div id="profile-addresses"></div>
+
+</div>
+
+<button id="btn-edit-profile" class="btn outline">
+Chỉnh sửa hồ sơ
+</button>
+
+</div>
+
+
+<div id="edit-profile-section" class="edit-form hidden">
+
+<div class="form">
+
+<label>Username</label>
+<input id="edit-username">
+
+<label>Email</label>
+<input id="edit-email">
+
+<label>Số điện thoại</label>
+<input id="edit-phone">
+
+<label>Họ tên</label>
+<input id="edit-full-name">
+
+<label>Ngày sinh</label>
+<input id="edit-birthday" type="date">
+
+</div>
+
+<div class="form-actions">
+
+<button id="btn-save-profile" class="btn primary">
+Lưu hồ sơ
+</button>
+
+<button id="btn-cancel-edit-profile" class="btn outline">
+Huỷ
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+
+<section class="card">
+
+<h2 class="card-title">Đổi avatar</h2>
+
+<input id="avatar-file" type="file">
+
+<button id="btn-upload-avatar" class="btn secondary">
+Cập nhật avatar
+</button>
+
+</section>
+
+
+<section class="card">
+
+<h2 class="card-title">Đổi mật khẩu</h2>
+
+<label>Mật khẩu hiện tại</label>
+<input id="current-password" type="password">
+
+<label>Mật khẩu mới</label>
+<input id="new-password" type="password">
+
+<button id="btn-change-password" class="btn secondary">
+Đổi mật khẩu
+</button>
+
+</section>
+
+
+<section class="card">
+
+<h2 class="card-title">Lịch sử mua hàng</h2>
+
+<button id="btn-load-orders" class="btn outline">
+Tải lịch sử mua hàng
+</button>
+
+<div id="orders-container"></div>
+
+</section>
+
+<p id="status-message"></p>
+
+</div>
+
+
+<div id="address-modal" class="modal hidden">
+
+<div class="modal-box">
+
+<h3>Địa chỉ mới</h3>
+
+<div class="grid">
+
+<input id="addr-name" placeholder="Họ tên">
+<input id="addr-phone" placeholder="Số điện thoại">
+
+<select id="addr-city">
+<option value="">Tỉnh / Thành phố</option>
+</select>
+
+<select id="addr-district">
+<option value="">Quận / Huyện</option>
+</select>
+
+<select id="addr-ward">
+<option value="">Phường / Xã</option>
+</select>
+
+<input id="addr-line" placeholder="Địa chỉ cụ thể">
+
+</div>
+
+<label class="default-checkbox">
+<input type="checkbox" id="addr-default">
+Đặt làm địa chỉ mặc định
+</label>
+
+<div class="modal-actions">
+
+<button type="button" id="btn-close-address" class="btn outline">
+Trở lại
+</button>
+
+<button id="btn-save-address" class="btn primary">
+Hoàn thành
+</button>
+
+</div>
+
+</div>
+
+</div>
+
 {% endblock %}
 
 {% block scripts %}

@@ -16,14 +16,19 @@ class HomeService:
 
     @staticmethod
     def _product_card_payload(product: Product, sold_count: int = 0) -> dict:
+
         image_url = product.thumbnail or "https://via.placeholder.com/320x320?text=Shopee+Mini"
+
+        variants = product.variants
+        price = min(v.price for v in variants) if variants else 0
+
         return {
             "id": product.id,
             "name": product.name,
-            "price": HomeService._to_float(product.price),
+            "price": HomeService._to_float(price),
             "rating": 4.7,
             "sold": int(sold_count),
-            "image": image_url,
+            "image": image_url
         }
 
     @staticmethod

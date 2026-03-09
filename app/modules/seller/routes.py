@@ -1,54 +1,65 @@
-from flask import render_template, request, redirect, session, jsonify, url_for
-from decimal import Decimal
+import os
+import uuid
 from datetime import datetime
+from decimal import Decimal
 
-from app.models import User, Shop, Order, OrderItem, Product, Message
-from app.core.enums.order_status import OrderStatus
-from app.modules.chat.service import ChatService
-from . import seller_bp
-from .service import SellerService
-from .product_manager import ProductManager
-from .product_service import SellerProductService
-from .repository import SellerRepository
-
-from .dto import (
-    CreateProductDTO,
-    CreateShopDTO,
-    ShippingSetupDTO
+from flask import (
+    render_template,
+    request,
+    redirect,
+    session,
+    jsonify,
+    url_for,
+    flash,
+    current_app,
 )
+from werkzeug.utils import secure_filename
 
+from app.extensions import db
+from app.models import User, Shop, Product, Category
 from app.common.security.permission import seller_required
-from app.common.exceptions import ForbiddenError, ValidationError
+from app.common.exceptions import ForbiddenError, ValidationError, AppException
+from app.modules.chat.service import ChatService
+
+from . import seller_bp
+from .dto import CreateShopDTO, ShippingSetupDTO
+from .service import SellerService
+from .center_service import SellerCenterService, ShopUpdateDTO, PromotionCreateDTO
+from .product_service import SellerProductService, SellerProductUpdateDTO, SellerProductCreateDTO
+from .repository import SellerRepository
+import os
+from werkzeug.utils import secure_filename
 
 def get_current_user():
     user_id = session.get("user_id")
-
     if not user_id:
         return None
-
     return User.query.get(user_id)
 
+
 def get_current_shop(user):
-
     shop = Shop.query.filter_by(owner_id=user.id).first()
-
     if not shop:
         raise ForbiddenError("Shop not found. Please create shop first.")
-
     return shop
 
 
 def _build_steps(shop):
     active_step = shop.onboarding_step if shop else 1
-    labels = [
-        "Thông tin Shop",
-        "Cài đặt vận chuyển"
+    labels = ["Thông tin Shop", "Cài đặt vận chuyển"]
+
+    return [
+        {
+            "label": label,
+            "index": i + 1,
+            "active": i + 1 == active_step,
+        }
+        for i, label in enumerate(labels)
     ]
-    return [{"label": label, "index": i + 1, "active": i + 1 == active_step} for i, label in enumerate(labels)]
+
 
 @seller_bp.route("/")
 def seller_center():
-
     user = get_current_user()
 
     if not user:
@@ -67,14 +78,16 @@ def seller_center():
 
 @seller_bp.route("/register_shop", methods=["GET", "POST"])
 def register_shop():
-
     user = get_current_user()
 
     if not user:
-        return redirect(url_for("auth.login",
-            next=url_for("seller.register_shop"),
-            role="seller"
-        ))
+        return redirect(
+            url_for(
+                "auth.login",
+                next=url_for("seller.register_shop"),
+                role="seller",
+            )
+        )
 
     shop = Shop.query.filter_by(owner_id=user.id).first()
 
@@ -89,14 +102,14 @@ def register_shop():
             form = {
                 "name": shop.name,
                 "pickup_address": shop.pickup_address,
-                "email": shop.email,
-                "phone": shop.phone
+                "email": shop.contact_email,
+                "phone": shop.contact_phone,
             }
 
         return render_template(
             "seller/shop/register_shop.html",
             steps=_build_steps(shop),
-            form=form
+            form=form,
         )
 
     form = {
@@ -115,26 +128,28 @@ def register_shop():
             SellerService.register_shop(user, dto)
 
     except ValidationError as e:
-
         return render_template(
             "seller/shop/register_shop.html",
             steps=_build_steps(shop),
             error=str(e),
-            form=form
+            form=form,
         )
 
     return redirect(url_for("seller.shipping_setup"))
 
+
 @seller_bp.route("/shipping_setup", methods=["GET", "POST"])
 def shipping_setup():
-
     user = get_current_user()
 
     if not user:
-        return redirect(url_for("auth.login",
-            next=url_for("seller.shipping_setup"),
-            role="seller"
-        ))
+        return redirect(
+            url_for(
+                "auth.login",
+                next=url_for("seller.shipping_setup"),
+                role="seller",
+            )
+        )
 
     shop = Shop.query.filter_by(owner_id=user.id).first()
 
@@ -160,7 +175,7 @@ def shipping_setup():
                 "seller/shop/shipping_setup.html",
                 shop=shop,
                 steps=_build_steps(shop),
-                error=str(e)
+                error=str(e),
             )
 
         return redirect(url_for("seller.dashboard"))
@@ -168,56 +183,40 @@ def shipping_setup():
     return render_template(
         "seller/shop/shipping_setup.html",
         shop=shop,
-        steps=_build_steps(shop)
+        steps=_build_steps(shop),
     )
 
-@seller_bp.route("/complete")
-def complete():
-    user = get_current_user()
-    if not user:
-        return redirect(url_for("auth.login", next=url_for("seller.complete"), role="seller"))
-
-    shop = Shop.query.filter_by(owner_id=user.id).first()
-    if not shop:
-        return redirect(url_for("seller.register_shop"))
-
-    return render_template("seller/shop/complete.html", shop=shop, steps=_build_steps(shop))
 
 @seller_bp.route("/dashboard")
 @seller_required
 def dashboard():
-
     user = get_current_user()
-    if not user:
-        return redirect(url_for("auth.login", role="seller"))
     shop = get_current_shop(user)
 
-    products = ProductManager.get_products(shop.id)
+    data = SellerCenterService.get_dashboard(shop.id)
 
     return render_template(
         "seller/dashboard.html",
         shop=shop,
-        products=products,
-        today_revenue=0,
-        total_orders=0,
-        total_products=len(products),
-        rating=shop.rating or 0,
+        todo=data["todo"],
+        today_revenue=data["today_revenue"],
+        total_orders=data["total_orders"],
+        total_products=data["total_products"],
+        recent_orders=data["recent_orders"],
     )
+
 
 @seller_bp.route("/products")
 @seller_required
 def product_list():
-
     user = get_current_user()
-    if not user:
-        return redirect(url_for("auth.login", role="seller"))
     shop = get_current_shop(user)
 
-    products = ProductManager.get_products(shop.id)
+    products = SellerProductService.list_products(shop.id)
 
     return render_template(
         "seller/product/product_list.html",
-        products=products
+        products=products,
     )
 
 
@@ -226,186 +225,388 @@ def product_list():
 def create_product():
 
     user = get_current_user()
-    if not user:
-        return redirect(url_for("auth.login", role="seller"))
     shop = get_current_shop(user)
 
+    categories = Category.query.all()
+
     if request.method == "GET":
-        return render_template("seller/product/product_create.html")
+        return render_template(
+            "seller/product/product_create.html",
+            categories=categories,
+            form=None,
+            error=None
+        )
 
     try:
-        dto = CreateProductDTO(
-            name=request.form.get("name"),
-            price=float(request.form.get("price") or 0),
-            stock=int(request.form.get("stock") or 0),
-            description=request.form.get("description")
+
+        name = request.form.get("name")
+        description = request.form.get("description")
+        category_id = request.form.get("category_id")
+
+        if not name:
+            raise ValueError("Tên sản phẩm không được để trống")
+
+        if not category_id:
+            raise ValueError("Phải chọn danh mục")
+
+        prices = request.form.getlist("variant_price[]")
+        stocks = request.form.getlist("variant_stock[]")
+        sizes = request.form.getlist("variant_size[]")
+        colors = request.form.getlist("variant_color[]")
+        variant_images = request.files.getlist("variant_image[]")
+
+        count = min(len(prices), len(stocks), len(sizes), len(colors))
+
+        if count == 0:
+            raise ValueError("Phải có ít nhất 1 phân loại")
+
+        upload_folder = os.path.join(
+            current_app.root_path,
+            "static/uploads/products"
         )
-    except (TypeError, ValueError):
-        return render_template("seller/product/product_create.html", error="Dữ liệu không hợp lệ")
 
-    ProductManager.create(shop.id, dto)
+        os.makedirs(upload_folder, exist_ok=True)
 
-    return redirect("/seller/products")
+        variants = []
+
+        for i in range(count):
+
+            price = Decimal(prices[i] or 0)
+            stock = int(stocks[i] or 0)
+            size = sizes[i]
+            color = colors[i]
+
+            image_url = None
+
+            if i < len(variant_images):
+                img = variant_images[i]
+
+                if img and img.filename:
+
+                    filename = secure_filename(img.filename)
+                    unique = str(uuid.uuid4()) + "_" + filename
+
+                    path = os.path.join(upload_folder, unique)
+
+                    img.save(path)
+
+                    image_url = f"/static/uploads/products/{unique}"
+
+            variants.append({
+                "price": price,
+                "stock": stock,
+                "image": image_url,
+                "attributes": {
+                    "size": size,
+                    "color": color
+                }
+            })
+
+        # upload product images
+        product_images = request.files.getlist("images[]")
+
+        if len(product_images) > 9:
+            raise ValueError("Tối đa 9 ảnh sản phẩm")
+
+        images = []
+
+        for file in product_images:
+
+            if file and file.filename:
+
+                filename = secure_filename(file.filename)
+                unique = str(uuid.uuid4()) + "_" + filename
+
+                path = os.path.join(upload_folder, unique)
+
+                file.save(path)
+
+                images.append(
+                    f"/static/uploads/products/{unique}"
+                )
+
+        dto = SellerProductCreateDTO(
+            name=name,
+            description=description,
+            category_id=int(category_id),
+            images=images,
+            variants=variants
+        )
+
+        SellerProductService.create(shop.id, dto)
+
+        return redirect(url_for("seller.product_list"))
+
+    except (TypeError, ValueError) as e:
+
+        return render_template(
+            "seller/product/product_create.html",
+            categories=categories,
+            error=str(e),
+            form=request.form
+        )
+
+    except AppException as e:
+
+        return render_template(
+            "seller/product/product_create.html",
+            categories=categories,
+            error=str(e),
+            form=request.form
+        )
 
 @seller_bp.route("/products/<int:pid>/delete")
 @seller_required
 def delete_product(pid):
 
     user = get_current_user()
-    if not user:
-        return redirect(url_for("auth.login", role="seller"))
     shop = get_current_shop(user)
 
-    SellerProductService.soft_delete(shop.id, pid)
+    product = Product.query.filter_by(
+        id=pid,
+        shop_id=shop.id,
+    ).first_or_404()
 
-    return redirect("/seller/products")
+    db.session.delete(product)
+    db.session.commit()
 
-@seller_bp.route("/api/revenue")
+    flash("Xóa sản phẩm thành công!", "success")
+
+    return redirect(url_for("seller.product_list"))
+
+
+@seller_bp.route("/products/<int:pid>/edit", methods=["GET", "POST"])
 @seller_required
-def revenue_api():
+def edit_product(pid):
 
-    data = {
-        "labels": ["T2", "T3", "T4", "T5", "T6", "T7", "CN"],
-        "values": [200, 350, 150, 400, 500, 300, 600]
-    }
+    user = get_current_user()
+    shop = get_current_shop(user)
 
-    return jsonify(data)
+    product = SellerRepository.get_product(shop.id, pid)
 
-@seller_bp.route("/api/orders", methods=["GET"])
+    if not product:
+        raise AppException("Product not found")
+
+    if request.method == "GET":
+        return render_template(
+            "seller/product/product_edit.html",
+            product=product,
+            variants=product.variants
+        )
+
+    try:
+
+        name = request.form.get("name")
+        description = request.form.get("description")
+
+        variants = []
+
+        prices = request.form.getlist("variant_price[]")
+        stocks = request.form.getlist("variant_stock[]")
+        sizes = request.form.getlist("variant_size[]")
+        colors = request.form.getlist("variant_color[]")
+
+        for i in range(len(prices)):
+
+            price = prices[i]
+            stock = stocks[i]
+            size = sizes[i]
+            color = colors[i]
+
+            if not price or not stock:
+                continue
+
+            variants.append({
+                "price": Decimal(price),
+                "stock": int(stock),
+                "attributes": {
+                    "size": size,
+                    "color": color
+                }
+            })
+        if not variants:
+            raise Exception("Sản phẩm phải có ít nhất 1 phân loại")
+        SellerProductService.update_variants(
+            shop.id,
+            pid,
+            name,
+            description,
+            variants
+        )
+        images = request.files.getlist("images")
+
+        if images:
+
+            image_urls = []
+
+            for img in images:
+
+                if img.filename == "":
+                    continue
+
+                filename = secure_filename(img.filename)
+
+                save_path = os.path.join(
+                    "app/static/uploads",
+                    filename
+                )
+
+                img.save(save_path)
+
+                image_urls.append(
+                    "/static/uploads/" + filename
+                )
+
+            SellerRepository.create_product_images(
+                pid,
+                image_urls
+            )
+
+    except Exception as e:
+
+        return render_template(
+            "seller/product/product_edit.html",
+            product=product,
+            variants=product.variants,
+            error=str(e),
+        )
+
+    return redirect(url_for("seller.product_list"))
+
+@seller_bp.route("/products/<int:pid>/hide")
 @seller_required
-def seller_orders_api():
+def hide_product(pid):
+
+    user = get_current_user()
+    shop = get_current_shop(user)
+
+    SellerProductService.update_status(shop.id, pid, "HIDDEN")
+
+    return redirect(url_for("seller.product_list"))
+
+
+@seller_bp.route("/products/<int:pid>/activate")
+@seller_required
+def activate_product(pid):
+
+    user = get_current_user()
+    shop = get_current_shop(user)
+
+    SellerProductService.update_status(shop.id, pid, "ACTIVE")
+
+    return redirect(url_for("seller.product_list"))
+
+@seller_bp.route("/products/<int:pid>/restock", methods=["POST"])
+@seller_required
+def restock_product(pid):
+
+    user = get_current_user()
+    shop = get_current_shop(user)
+
+    quantity = request.form.get("quantity")
+
+    if not quantity:
+        flash("Vui lòng nhập số lượng", "error")
+        return redirect(url_for("seller.product_list"))
+
+    quantity = int(quantity)
+
+    SellerProductService.restock(shop.id, pid, quantity)
+
+    flash("Nhập kho thành công", "success")
+
+    return redirect(url_for("seller.product_list"))
+
+
+@seller_bp.route("/orders")
+@seller_required
+def orders_page():
+
     user = get_current_user()
     shop = get_current_shop(user)
 
     status = request.args.get("status")
-    query = (
-        Order.query.join(OrderItem, OrderItem.order_id == Order.id)
-        .join(Product, Product.id == OrderItem.product_id)
-        .filter(Product.shop_id == shop.id)
-        .distinct()
+
+    orders = SellerCenterService.list_orders(shop.id, status)
+
+    return render_template(
+        "seller/order/order_list.html",
+        orders=orders,
+        status=status or "ALL",
     )
-    if status:
-        query = query.filter(Order.status == OrderStatus(status.upper()))
-
-    orders = query.order_by(Order.created_at.desc()).all()
-    return jsonify({
-        "items": [
-            {
-                "id": o.id,
-                "status": o.status.value,
-                "total_price": float(o.total_price),
-            }
-            for o in orders
-        ]
-    })
 
 
-@seller_bp.route("/api/orders/<int:order_id>/status", methods=["PUT"])
+@seller_bp.route("/chat")
 @seller_required
-def update_order_status(order_id):
+def chat_page():
+
+    user = get_current_user()
+
+    rooms = SellerCenterService.get_chat_overview(user.id)
+
+    return render_template(
+        "seller/chat.html",
+        rooms=rooms,
+    )
+
+
+@seller_bp.route("/shipping")
+@seller_required
+def shipping_page():
+
     user = get_current_user()
     shop = get_current_shop(user)
 
-    payload = request.get_json() or {}
-    new_status = OrderStatus((payload.get("status") or "").upper())
-
-    order = (
-        Order.query.join(OrderItem, OrderItem.order_id == Order.id)
-        .join(Product, Product.id == OrderItem.product_id)
-        .filter(Order.id == order_id, Product.shop_id == shop.id)
-        .first()
+    return render_template(
+        "seller/shipping.html",
+        shop=shop,
     )
-    if not order:
-        raise ForbiddenError("Order not found for current shop")
-
-    order.status = new_status
-    from app.extensions import db
-    db.session.commit()
-    return jsonify({"id": order.id, "status": order.status.value})
 
 
-@seller_bp.route("/api/chat/message", methods=["POST"])
+@seller_bp.route("/promotions")
 @seller_required
-def seller_send_message():
-    user = get_current_user()
-    payload = request.get_json() or {}
-    buyer_id = int(payload.get("buyer_id", 0))
-    room = ChatService.get_or_create_room(buyer_id=buyer_id, seller_id=user.id)
-    msg = ChatService.save_message(room.id, user.id, content=payload.get("content"), image=payload.get("image"))
-    return jsonify({"id": msg.id, "push_notification": True})
+def promotions_page():
 
-
-@seller_bp.route("/api/shipping", methods=["PUT"])
-@seller_required
-def seller_shipping_api():
-    user = get_current_user()
-    shop = get_current_shop(user)
-    payload = request.get_json() or {}
-    dto = ShippingSetupDTO(
-        fast=bool(payload.get("fast")),
-        same_day=bool(payload.get("same_day")),
-        express=bool(payload.get("express")),
-        self_delivery=bool(payload.get("self_delivery")),
-        pickup_point=bool(payload.get("pickup_point")),
-        bulky=bool(payload.get("bulky")),
-    )
-    SellerService.setup_shipping(shop, dto)
-    return jsonify({"saved": True})
-
-
-@seller_bp.route("/api/revenue/summary", methods=["GET"])
-@seller_required
-def seller_revenue_summary():
     user = get_current_user()
     shop = get_current_shop(user)
 
-    delivered_orders = (
-        Order.query.join(OrderItem, OrderItem.order_id == Order.id)
-        .join(Product, Product.id == OrderItem.product_id)
-        .filter(Product.shop_id == shop.id, Order.status == OrderStatus.DELIVERED)
-        .distinct()
-        .all()
+    products = SellerRepository.list_products(shop.id)
+    promotions = SellerRepository.list_flash_sales_for_shop(shop.id)
+
+    return render_template(
+        "seller/promotions.html",
+        products=products,
+        promotions=promotions,
     )
-    revenue = sum(Decimal(o.total_price) for o in delivered_orders)
-    platform_fee = revenue * Decimal("0.05")
-    shipping_cost = revenue * Decimal("0.02")
-    profit = revenue - platform_fee - shipping_cost
-
-    return jsonify({
-        "orders": len(delivered_orders),
-        "revenue": float(revenue),
-        "platform_fee": float(platform_fee),
-        "shipping": float(shipping_cost),
-        "profit": float(profit),
-        "formula": "profit = revenue - platform_fee - shipping",
-    })
 
 
-@seller_bp.route("/api/shop", methods=["PUT"])
+@seller_bp.route("/revenue")
 @seller_required
-def update_shop_profile():
+def revenue_page():
+
     user = get_current_user()
     shop = get_current_shop(user)
-    payload = request.get_json() or {}
 
-    shop.name = payload.get("name", shop.name)
-    shop.logo = payload.get("logo", shop.logo)
-    shop.pickup_address = payload.get("address", shop.pickup_address)
-    shop.updated_at = datetime.utcnow()
+    summary = SellerCenterService.get_revenue_summary(shop.id)
 
-    from app.extensions import db
-    db.session.commit()
-
-    return jsonify({"saved": True, "shop_id": shop.id})
+    return render_template(
+        "seller/revenue.html",
+        summary=summary,
+    )
 
 
-@seller_bp.route("/api/promotions", methods=["POST"])
+@seller_bp.route("/shop-settings")
 @seller_required
-def create_promotion():
-    payload = request.get_json() or {}
-    if int(payload.get("discount_percent", 0)) <= 0:
-        raise ValidationError("discount_percent phải > 0")
-    return jsonify({"created": True, "promotion": payload}), 201
+def shop_settings_page():
+
+    user = get_current_user()
+    shop = get_current_shop(user)
+
+    return render_template(
+        "seller/shop/settings.html",
+        shop=shop,
+    )
+
 
 @seller_bp.route("/become")
 def become_seller():
@@ -413,7 +614,13 @@ def become_seller():
     user = get_current_user()
 
     if not user:
-        return redirect(url_for("auth.login", next=url_for("seller.register_shop"), role="seller"))
+        return redirect(
+            url_for(
+                "auth.login",
+                next=url_for("seller.register_shop"),
+                role="seller",
+            )
+        )
 
     if user.is_seller:
         return redirect(url_for("seller.seller_center"))

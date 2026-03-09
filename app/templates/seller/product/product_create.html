@@ -2,32 +2,185 @@
 
 {% block seller_content %}
 
-<h2>Tạo sản phẩm</h2>
+<h2>Thêm sản phẩm</h2>
 
-<form method="post">
+{% if error %}
+<div class="alert">{{ error }}</div>
+{% endif %}
 
-<div>
+<form method="post" enctype="multipart/form-data" class="seller-form">
+
 <label>Tên sản phẩm</label>
-<input name="name">
-</div>
+<input name="name" required value="{{ form.get('name') if form else '' }}">
 
-<div>
-<label>Giá</label>
-<input name="price">
-</div>
-
-<div>
-<label>Tồn kho</label>
-<input name="stock">
-</div>
-
-<div>
 <label>Mô tả</label>
-<textarea name="description"></textarea>
+<textarea name="description">{{ form.get('description') if form else '' }}</textarea>
+
+
+<div class="form-group">
+<label>Danh mục</label>
+
+<div class="category-tags">
+
+{% for c in categories %}
+
+<label class="tag">
+
+<input type="checkbox"
+name="category_id"
+value="{{ c.id }}"
+{% if form and form.get('category_id') == c.id|string %}checked{% endif %}
+hidden>
+
+<span>{{ c.name }}</span>
+
+</label>
+
+{% endfor %}
+
+<small>Chọn tối đa 3 danh mục</small>
+
 </div>
 
-<button type="submit">
-Tạo sản phẩm
+</div>
+
+<div class="bulk-edit">
+
+<input id="bulkPrice" placeholder="Giá tất cả">
+
+<input id="bulkStock" placeholder="Tồn kho tất cả">
+
+<button type="button" onclick="setBulkPrice()">Áp dụng</button>
+
+</div>
+
+<h3>Variants</h3>
+
+<table class="variant-table">
+
+<thead>
+<tr>
+<th>Image</th>
+<th>Size</th>
+<th>Color</th>
+<th>Price</th>
+<th>Stock</th>
+<th></th>
+</tr>
+</thead>
+
+<tbody id="variantBody">
+{% if form %}
+{% set sizes = form.getlist('variant_size[]') %}
+{% set colors = form.getlist('variant_color[]') %}
+{% set prices = form.getlist('variant_price[]') %}
+{% set stocks = form.getlist('variant_stock[]') %}
+{% for i in range(sizes|length) %}
+
+<tr>
+<td>
+<input type="file" name="variant_image[]" accept="image/*">
+</td>
+
+<td>
+<input name="variant_size[]" value="{{ sizes[i] }}">
+</td>
+
+<td>
+<input name="variant_color[]" value="{{ colors[i] }}">
+</td>
+
+<td>
+<div class="price-input">
+<input type="number" name="variant_price[]"
+value="{{ prices[i] }}"
+min="0"
+step="1000">
+<div class="price-text"></div>
+</div>
+</td>
+
+<td>
+<input type="number"
+name="variant_stock[]"
+value="{{ stocks[i] }}">
+</td>
+
+<td>
+<button type="button" onclick="removeVariant(this)">X</button>
+</td>
+
+</tr>
+{% endfor %}
+
+{% else %}
+<tr>
+
+<td>
+<input type="file" name="variant_image[]" accept="image/*">
+</td>
+
+<td>
+<input name="variant_size[]" placeholder="S">
+</td>
+
+<td>
+<input name="variant_color[]" placeholder="Red">
+</td>
+
+<td>
+<input type="number" name="variant_price[]" min="0">
+</td>
+
+<td>
+<input type="number" name="variant_stock[]">
+</td>
+
+<td>
+<button type="button" onclick="removeVariant(this)">X</button>
+</td>
+
+</tr>
+
+{% endif %}
+</tbody>
+
+</table>
+
+
+<button type="button" onclick="addVariant()">
++ Thêm phân loại
+</button>
+
+
+<label>Hình ảnh sản phẩm (tối đa 9)</label>
+
+<div class="image-upload-box" id="uploadBox">
+
+<input type="file" name="images[]" multiple accept="image/*" id="imageInput" hidden>
+
+<div class="upload-placeholder">
+
+<span>📷</span>
+<p>Kéo ảnh vào đây hoặc click để chọn</p>
+<small>Tối đa 9 ảnh</small>
+
+</div>
+
+<div id="preview" class="image-preview"></div>
+
+</div>
+
+<input type="hidden" name="thumbnail_index" id="thumbnailIndex" value="0">
+
+
+<br>
+<a href="{{ url_for('seller.product_list') }}" class="btn">
+← Quay lại
+</a>
+
+<button class="btn btn--primary" type="submit">
+Lưu sản phẩm
 </button>
 
 </form>
