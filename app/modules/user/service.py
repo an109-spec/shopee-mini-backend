@@ -2,10 +2,10 @@ from datetime import date
 from decimal import Decimal
 from hashlib import sha256
 from urllib.parse import urlparse
-
+import json
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
-
+from uuid import uuid4
 from app.common.exceptions import (
     ConflictError,
     NotFoundError,
@@ -82,7 +82,7 @@ class UserService:
     def get_profile(user_id: int) -> dict:
         user = UserService._get_user(user_id)
         profile = UserProfile.query.filter_by(user_id=user.id).first()
-
+        addresses = UserService._load_addresses(profile.address if profile else None)
         return {
             "id": user.id,
             "username": user.username,
@@ -93,12 +93,64 @@ class UserService:
             "profile": {
                 "full_name": profile.full_name if profile else None,
                 "address": profile.address if profile else None,
-                "addresses": [item for item in (profile.address or "").split("\n") if item.strip()] if profile else [],
+                "addresses": addresses,
                 "gender": profile.gender if profile else None,
                 "birthday": profile.birthday.isoformat() if profile and profile.birthday else None,
             },
         }
+    @staticmethod
+    def _load_addresses(raw_value: str | None) -> list[dict]:
+        if not raw_value:
+            return []
 
+        try:
+            parsed = json.loads(raw_value)
+            if isinstance(parsed, list):
+                normalized = []
+                for item in parsed:
+                    if not isinstance(item, dict):
+                        continue
+                    normalized.append(
+                        {
+                            "id": str(item.get("id") or uuid4().hex),
+                            "full_name": str(item.get("full_name") or "").strip(),
+                            "phone": str(item.get("phone") or "").strip(),
+                            "city": str(item.get("city") or "").strip(),
+                            "district": str(item.get("district") or "").strip(),
+                            "ward": str(item.get("ward") or "").strip(),
+                            "address_line": str(item.get("address_line") or "").strip(),
+                            "is_default": bool(item.get("is_default", False)),
+                        }
+                    )
+                if any(i["is_default"] for i in normalized):
+                    first_default = next(i for i in normalized if i["is_default"])
+                    for item in normalized:
+                        item["is_default"] = item["id"] == first_default["id"]
+                elif normalized:
+                    normalized[0]["is_default"] = True
+                return normalized
+        except (TypeError, json.JSONDecodeError):
+            pass
+
+        legacy = [item.strip() for item in raw_value.split("\n") if item.strip()]
+        return [
+            {
+                "id": uuid4().hex,
+                "full_name": "",
+                "phone": "",
+                "city": "",
+                "district": "",
+                "ward": "",
+                "address_line": line,
+                "is_default": idx == 0,
+            }
+            for idx, line in enumerate(legacy)
+        ]
+
+    @staticmethod
+    def _save_addresses(profile: UserProfile, addresses: list[dict]) -> None:
+        profile.address = json.dumps(addresses, ensure_ascii=False)
+        
     @staticmethod
     def update_profile(user_id: int, payload: dict) -> dict:
         user = UserService._get_user(user_id)
@@ -146,8 +198,26 @@ class UserService:
         if addresses_provided:
             if not isinstance(addresses, list):
                 raise ValidationError("Danh sách địa chỉ không hợp lệ")
-            cleaned = [str(item).strip() for item in addresses if str(item).strip()]
-            profile.address = "\n".join(cleaned)
+            cleaned = []
+            for item in addresses:
+                if isinstance(item, dict):
+                    cleaned.append(item)
+                elif str(item).strip():
+                    cleaned.append(
+                        {
+                            "id": uuid4().hex,
+                            "full_name": "",
+                            "phone": "",
+                            "city": "",
+                            "district": "",
+                            "ward": "",
+                            "address_line": str(item).strip(),
+                            "is_default": False,
+                        }
+                    )
+            if cleaned and not any(i.get("is_default") for i in cleaned):
+                cleaned[0]["is_default"] = True
+            UserService._save_addresses(profile, cleaned)
 
         db.session.commit()
         return UserService.get_profile(user.id)
@@ -158,6 +228,82 @@ class UserService:
         user.avatar = avatar_path
         db.session.commit()
         return avatar_path
+
+    @staticmethod
+    def add_address(user_id: int, payload: dict) -> list[dict]:
+        user = UserService._get_user(user_id)
+        profile = UserProfile.query.filter_by(user_id=user.id).first()
+        if profile is None:
+            profile = UserProfile(user_id=user.id)
+            db.session.add(profile)
+
+        required_fields = ["full_name", "phone", "city", "district", "ward", "address_line"]
+        for field in required_fields:
+            if not str(payload.get(field) or "").strip():
+                raise ValidationError("Vui lòng nhập đầy đủ thông tin địa chỉ")
+
+        addresses = UserService._load_addresses(profile.address)
+        new_address = {
+            "id": uuid4().hex,
+            "full_name": str(payload.get("full_name")).strip(),
+            "phone": str(payload.get("phone")).strip(),
+            "city": str(payload.get("city")).strip(),
+            "district": str(payload.get("district")).strip(),
+            "ward": str(payload.get("ward")).strip(),
+            "address_line": str(payload.get("address_line")).strip(),
+            "is_default": bool(payload.get("is_default", False)),
+        }
+
+        if not addresses:
+            new_address["is_default"] = True
+
+        if new_address["is_default"]:
+            for item in addresses:
+                item["is_default"] = False
+
+        addresses.append(new_address)
+        UserService._save_addresses(profile, addresses)
+        db.session.commit()
+        return addresses
+
+    @staticmethod
+    def delete_address(user_id: int, address_id: str) -> list[dict]:
+        user = UserService._get_user(user_id)
+        profile = UserProfile.query.filter_by(user_id=user.id).first()
+        if profile is None:
+            raise NotFoundError("Không tìm thấy địa chỉ")
+
+        addresses = UserService._load_addresses(profile.address)
+        kept = [item for item in addresses if item["id"] != address_id]
+        if len(kept) == len(addresses):
+            raise NotFoundError("Không tìm thấy địa chỉ")
+
+        if kept and not any(i["is_default"] for i in kept):
+            kept[0]["is_default"] = True
+
+        UserService._save_addresses(profile, kept)
+        db.session.commit()
+        return kept
+
+    @staticmethod
+    def set_default_address(user_id: int, address_id: str) -> list[dict]:
+        user = UserService._get_user(user_id)
+        profile = UserProfile.query.filter_by(user_id=user.id).first()
+        if profile is None:
+            raise NotFoundError("Không tìm thấy địa chỉ")
+
+        addresses = UserService._load_addresses(profile.address)
+        found = False
+        for item in addresses:
+            item["is_default"] = item["id"] == address_id
+            found = found or item["is_default"]
+
+        if not found:
+            raise NotFoundError("Không tìm thấy địa chỉ")
+
+        UserService._save_addresses(profile, addresses)
+        db.session.commit()
+        return addresses
 
     # ==============================
     # PASSWORD

@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import session, redirect, url_for
+from flask import session, redirect, url_for, flash 
 from app.common.exceptions import ForbiddenError
 from app.models import User, Shop
 
@@ -48,8 +48,10 @@ def seller_required(func):
         shop = Shop.query.filter_by(owner_id=user.id).first()
 
         if not shop:
+            flash("Bạn cần đăng ký người bán để truy cập kênh người bán", "warning")
             return redirect(url_for("seller.register_shop"))
         if not user.is_seller:
+            flash("Bạn cần đăng ký người bán để truy cập kênh người bán", "warning")
             return redirect(url_for("seller.register_shop"))
 
         if not shop.onboarding_completed:

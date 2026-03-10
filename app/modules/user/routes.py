@@ -120,3 +120,33 @@ def purchase_history():
         return jsonify({"orders": history}), 200
     except AppException as e:
         return jsonify({"error": str(e)}), e.status_code
+    
+@user_bp.route("/address", methods=["POST"])
+def add_address():
+    try:
+        user_id = _resolve_user_id()
+        payload = request.get_json(silent=True) or {}
+        addresses = UserService.add_address(user_id, payload)
+        return jsonify({"addresses": addresses}), 200
+    except AppException as e:
+        return jsonify({"error": str(e)}), e.status_code
+
+
+@user_bp.route("/address/<string:address_id>", methods=["DELETE"])
+def delete_address(address_id: str):
+    try:
+        user_id = _resolve_user_id()
+        addresses = UserService.delete_address(user_id, address_id)
+        return jsonify({"addresses": addresses}), 200
+    except AppException as e:
+        return jsonify({"error": str(e)}), e.status_code
+
+
+@user_bp.route("/address/<string:address_id>/default", methods=["POST"])
+def set_default_address(address_id: str):
+    try:
+        user_id = _resolve_user_id()
+        addresses = UserService.set_default_address(user_id, address_id)
+        return jsonify({"addresses": addresses}), 200
+    except AppException as e:
+        return jsonify({"error": str(e)}), e.status_code

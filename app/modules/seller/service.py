@@ -1,6 +1,6 @@
 from app.extensions import db
 from app.common.exceptions import ValidationError, AppException
-from app.models import Shop,Product, ProductImage
+from app.models import Shop, Product, ProductImage
 from .dto import CreateShopDTO, ShippingSetupDTO
 from slugify import slugify
 from decimal import Decimal
@@ -9,7 +9,7 @@ from .repository import SellerRepository
 class SellerService:
 
     @staticmethod
-    def _validate_step_1(dto: CreateShopDTO):
+    def _validate_step_1(dto: CreateShopDTO, current_shop_id: int | None = None):
         if not dto.name or len(dto.name.strip()) < 3:
             raise ValidationError("Tên shop tối thiểu 3 ký tự")
         if not dto.pickup_address or len(dto.pickup_address.strip()) < 10:
@@ -18,7 +18,18 @@ class SellerService:
             raise ValidationError("Email liên hệ không hợp lệ")
         if not dto.phone or len(dto.phone.strip()) < 9:
             raise ValidationError("Số điện thoại liên hệ không hợp lệ")
+        normalized_email = dto.email.strip().lower()
+        normalized_phone = dto.phone.strip()
 
+        email_query = Shop.query.filter(Shop.contact_email == normalized_email)
+        phone_query = Shop.query.filter(Shop.contact_phone == normalized_phone)
+
+        if current_shop_id is not None:
+            email_query = email_query.filter(Shop.id != current_shop_id)
+            phone_query = phone_query.filter(Shop.id != current_shop_id)
+
+        if email_query.first() or phone_query.first():
+            raise ValidationError("Email hoặc số điện thoại đã tồn tại")
     @staticmethod
     def register_shop(user, dto: CreateShopDTO):
         SellerService._validate_step_1(dto)
@@ -70,7 +81,7 @@ class SellerService:
 
     @staticmethod
     def update_shop(shop: Shop, dto: CreateShopDTO):
-        SellerService._validate_step_1(dto)
+        SellerService._validate_step_1(dto, current_shop_id=shop.id)
 
         shop.name = dto.name.strip()
         shop.pickup_address = dto.pickup_address.strip()

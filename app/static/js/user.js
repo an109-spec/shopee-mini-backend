@@ -105,7 +105,7 @@ function renderAddresses(list) {
 
     }
 
-    list.forEach((a, i) => {
+    list.forEach((a) => {
 
         const div = document.createElement("div")
         div.className = "address-card"
@@ -125,12 +125,12 @@ function renderAddresses(list) {
         const d = document.createElement("button")
         d.textContent = "Đặt mặc định"
         d.className = "btn outline"
-        d.onclick = () => setDefault(i)
+        d.onclick = () => setDefault(a.id)
 
         const x = document.createElement("button")
         x.textContent = "Xóa"
         x.className = "btn outline"
-        x.onclick = () => deleteAddr(i)
+        x.onclick = () => deleteAddr(a.id)
 
         right.appendChild(d)
         right.appendChild(x)
@@ -344,13 +344,14 @@ btnCloseAddress.onclick = () => {
 btnSaveAddress.onclick = async () => {
 
     try {
-
+        const cityText = addrCity.options[addrCity.selectedIndex]?.text || ""
+        const districtText = addrDistrict.options[addrDistrict.selectedIndex]?.text || ""
         await api("/user/address", "POST", {
 
             full_name: addrName.value,
             phone: addrPhone.value,
-            city: addrCity.value,
-            district: addrDistrict.value,
+            city: cityText,
+            district: districtText,
             ward: addrWard.value,
             address_line: addrLine.value,
             is_default: addrDefault.checked
@@ -359,7 +360,8 @@ btnSaveAddress.onclick = async () => {
 
         modal.classList.add("hidden")
 
-        loadProfile()
+        await loadProfile()
+
 
     } catch (e) {
 
@@ -372,24 +374,24 @@ btnSaveAddress.onclick = async () => {
 
 /* DELETE ADDRESS */
 
-async function deleteAddr(i) {
+async function deleteAddr(addressId) {
 
     if (!confirm("Xóa địa chỉ?")) return
 
-    await api(`/user/address/${i}`, "DELETE")
+    await api(`/user/address/${addressId}`, "DELETE")
 
-    loadProfile()
+    await loadProfile()
 
 }
 
 
 /* SET DEFAULT */
 
-async function setDefault(i) {
+async function setDefault(addressId) {
 
-    await api(`/user/address/${i}/default`, "POST")
+    await api(`/user/address/${addressId}/default`, "POST")
 
-    loadProfile()
+    await loadProfile()
 
 }
 
@@ -400,7 +402,7 @@ LOCATION API
 
 async function loadCities() {
 
-    const res = await fetch("https://provinces.open-api.vn/api/p/")
+    const res = await fetch("https://provinces.open-api.vn/api/p/?depth=2")
     const data = await res.json()
 
     addrCity.innerHTML = `<option value="">Tỉnh / Thành phố</option>`
@@ -409,7 +411,7 @@ async function loadCities() {
 
         const opt = document.createElement("option")
 
-        opt.value = c.name
+        opt.value = String(c.code)
         opt.textContent = c.name
 
         addrCity.appendChild(opt)
@@ -421,13 +423,13 @@ async function loadCities() {
 
 async function loadDistricts(city) {
 
-    const res = await fetch("https://provinces.open-api.vn/api/p/")
-    const data = await res.json()
+    if (!city) {
+        addrDistrict.innerHTML = `<option value="">Quận / Huyện</option>`
+        addrWard.innerHTML = `<option value="">Phường / Xã</option>`
+        return
+    }
 
-    const found = data.find(i => i.name === city)
-    if (!found) return
-
-    const res2 = await fetch(`https://provinces.open-api.vn/api/p/${found.code}?depth=2`)
+    const res2 = await fetch(`https://provinces.open-api.vn/api/p/${city}?depth=2`)
     const data2 = await res2.json()
 
     addrDistrict.innerHTML = `<option value="">Quận / Huyện</option>`
@@ -436,7 +438,7 @@ async function loadDistricts(city) {
 
         const opt = document.createElement("option")
 
-        opt.value = d.name
+        opt.value = String(d.code)
         opt.textContent = d.name
 
         addrDistrict.appendChild(opt)
@@ -448,13 +450,12 @@ async function loadDistricts(city) {
 
 async function loadWards(districtName) {
 
-    const res = await fetch("https://provinces.open-api.vn/api/d/")
-    const data = await res.json()
+    if (!districtName) {
+        addrWard.innerHTML = `<option value="">Phường / Xã</option>`
+        return
+    }
 
-    const found = data.find(i => i.name === districtName)
-    if (!found) return
-
-    const res2 = await fetch(`https://provinces.open-api.vn/api/d/${found.code}?depth=2`)
+    const res2 = await fetch(`https://provinces.open-api.vn/api/d/${districtName}?depth=2`)
     const data2 = await res2.json()
 
     addrWard.innerHTML = `<option value="">Phường / Xã</option>`
@@ -493,3 +494,11 @@ INIT
 ========================= */
 
 loadProfile()
+
+if (modal) {
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.classList.add("hidden")
+        }
+    })
+}

@@ -36,12 +36,3 @@ class CreateProductDTO:
     price: float
     stock: int
     description: str | None = None
-@dataclass
-class SellerProductCreateDTO:
-
-    name: str
-    description: Optional[str]
-    price: Decimal
-    stock: int
-    category_id: Optional[int]
-    images: List[str]
