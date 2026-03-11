@@ -18,7 +18,7 @@ from werkzeug.utils import secure_filename
 from app.extensions import db
 from app.models import User, Shop, Product, Category
 from app.common.security.permission import seller_required
-from app.common.exceptions import ForbiddenError, ValidationError, AppException
+from app.common.exceptions import ValidationError, AppException
 from app.modules.chat.service import ChatService
 
 from . import seller_bp
@@ -29,7 +29,7 @@ from .product_service import SellerProductService, SellerProductUpdateDTO, Selle
 from .repository import SellerRepository
 import os
 from werkzeug.utils import secure_filename
-
+from flask import flash
 def get_current_user():
     user_id = session.get("user_id")
     if not user_id:
@@ -38,10 +38,9 @@ def get_current_user():
 
 
 def get_current_shop(user):
-    shop = Shop.query.filter_by(owner_id=user.id).first()
-    if not shop:
-        raise ForbiddenError("Shop not found. Please create shop first.")
-    return shop
+    if not user:
+        return None
+    return user.shop
 
 
 def _build_steps(shop):
@@ -65,13 +64,13 @@ def seller_center():
     if not user:
         return redirect(url_for("auth.login", next="/seller", role="seller"))
 
-    shop = Shop.query.filter_by(owner_id=user.id).first()
+    shop = get_current_shop(user)
 
     if not shop:
         return redirect(url_for("seller.register_shop"))
 
-    if not shop.shipping_configured:
-        return redirect(url_for("seller.shipping_setup"))
+    if not shop.onboarding_completed:
+        return redirect(url_for("seller.setup_shipping"))
 
     return redirect(url_for("seller.dashboard"))
 
@@ -89,10 +88,13 @@ def register_shop():
             )
         )
 
-    shop = Shop.query.filter_by(owner_id=user.id).first()
+    shop = get_current_shop(user)
 
-    if shop and shop.shipping_configured:
-        return redirect(url_for("seller.seller_center"))
+    if shop:
+        if not shop.onboarding_completed:
+            return redirect(url_for("seller.setup_shipping"))
+
+        return redirect(url_for("seller.dashboard"))
 
     if request.method == "GET":
 
@@ -135,23 +137,22 @@ def register_shop():
             form=form,
         )
 
-    return redirect(url_for("seller.shipping_setup"))
+    return redirect(url_for("seller.setup_shipping"))
 
-
-@seller_bp.route("/shipping_setup", methods=["GET", "POST"])
-def shipping_setup():
+@seller_bp.route("/setup_shipping", methods=["GET", "POST"])
+def setup_shipping():
     user = get_current_user()
 
     if not user:
         return redirect(
             url_for(
                 "auth.login",
-                next=url_for("seller.shipping_setup"),
+                next=url_for("seller.setup_shipping"),
                 role="seller",
             )
         )
 
-    shop = Shop.query.filter_by(owner_id=user.id).first()
+    shop = get_current_shop(user)
 
     if not shop:
         return redirect(url_for("seller.register_shop"))
@@ -186,13 +187,24 @@ def shipping_setup():
         steps=_build_steps(shop),
     )
 
+def check_onboarding(shop):
+    if not shop:
+        flash("Bạn cần đăng ký người bán trước", "warning")
+        return redirect(url_for("seller.register_shop"))
+
+    if not shop.onboarding_completed:
+        return redirect(url_for("seller.setup_shipping"))
+    return None
 
 @seller_bp.route("/dashboard")
 @seller_required
 def dashboard():
     user = get_current_user()
     shop = get_current_shop(user)
+    redirect_url = check_onboarding(shop)
 
+    if redirect_url:
+        return redirect(redirect_url)
     data = SellerCenterService.get_dashboard(shop.id)
 
     return render_template(
@@ -269,6 +281,22 @@ def create_product():
 
         variants = []
 
+        shipping_fast = request.form.get("shipping_fast")
+        shipping_same_day = request.form.get("shipping_same_day")
+        shipping_express = request.form.get("shipping_express")
+        shipping_pickup = request.form.get("shipping_pickup")
+        shipping_bulky = request.form.get("shipping_bulky")
+
+        shipping_fast_fee = int(request.form.get("shipping_fast_fee") or 0)
+        shipping_same_day_fee = int(request.form.get("shipping_same_day_fee") or 0)
+        shipping_express_fee = int(request.form.get("shipping_express_fee") or 0)
+        shipping_pickup_fee = int(request.form.get("shipping_pickup_fee") or 0)
+        shipping_bulky_fee = int(request.form.get("shipping_bulky_fee") or 0)
+
+        weight = int(request.form.get("weight") or 0)
+        length = int(request.form.get("length") or 0)
+        width = int(request.form.get("width") or 0)
+        height = int(request.form.get("height") or 0)
         for i in range(count):
 
             price = Decimal(prices[i] or 0)
@@ -296,6 +324,18 @@ def create_product():
                 "price": price,
                 "stock": stock,
                 "image": image_url,
+
+                "weight": weight,
+                "length": length,
+                "width": width,
+                "height": height,
+
+                "shipping_fast_fee": shipping_fast_fee if shipping_fast else 0,
+                "shipping_same_day_fee": shipping_same_day_fee if shipping_same_day else 0,
+                "shipping_express_fee": shipping_express_fee if shipping_express else 0,
+                "shipping_pickup_fee": shipping_pickup_fee if shipping_pickup else 0,
+                "shipping_bulky_fee": shipping_bulky_fee if shipping_bulky else 0,
+
                 "attributes": {
                     "size": size,
                     "color": color
@@ -388,16 +428,40 @@ def edit_product(pid):
         raise AppException("Product not found")
 
     if request.method == "GET":
+
+        categories = Category.query.all()
+
         return render_template(
-            "seller/product/product_edit.html",
+                "seller/product/product_edit.html",
             product=product,
-            variants=product.variants
-        )
+            variants=product.variants,
+            images=product.images,
+            categories=categories
+            )
 
     try:
 
         name = request.form.get("name")
         description = request.form.get("description")
+        category_id = request.form.getlist("category_ids[]")
+        if category_id:
+            product.category_id = int(category_id[0])
+        shipping_fast = request.form.get("shipping_fast")
+        shipping_same_day = request.form.get("shipping_same_day")
+        shipping_express = request.form.get("shipping_express")
+        shipping_pickup = request.form.get("shipping_pickup")
+        shipping_bulky = request.form.get("shipping_bulky")
+
+        shipping_fast_fee = int(request.form.get("shipping_fast_fee") or 0)
+        shipping_same_day_fee = int(request.form.get("shipping_same_day_fee") or 0)
+        shipping_express_fee = int(request.form.get("shipping_express_fee") or 0)
+        shipping_pickup_fee = int(request.form.get("shipping_pickup_fee") or 0)
+        shipping_bulky_fee = int(request.form.get("shipping_bulky_fee") or 0)
+
+        weight = float(request.form.get("weight") or 0)
+        length = float(request.form.get("length") or 0)
+        width = float(request.form.get("width") or 0)
+        height = float(request.form.get("height") or 0)
 
         variants = []
 
@@ -405,7 +469,8 @@ def edit_product(pid):
         stocks = request.form.getlist("variant_stock[]")
         sizes = request.form.getlist("variant_size[]")
         colors = request.form.getlist("variant_color[]")
-
+        variant_images = request.files.getlist("variant_image[]")
+        old_images = request.form.getlist("variant_old_image[]")
         for i in range(len(prices)):
 
             price = prices[i]
@@ -415,10 +480,29 @@ def edit_product(pid):
 
             if not price or not stock:
                 continue
+            image = None
+            if i < len(variant_images):
+                file = variant_images[i]
 
+                if file and file.filename != "":
+                    image = file
+                else:
+                    image = old_images[i] if i < len(old_images) else None
             variants.append({
                 "price": Decimal(price),
                 "stock": int(stock),
+                "image": image,
+                "weight": weight,
+                "length": length,
+                "width": width,
+                "height": height,
+
+                "shipping_fast_fee": shipping_fast_fee if shipping_fast else 0,
+                "shipping_same_day_fee": shipping_same_day_fee if shipping_same_day else 0,
+                "shipping_express_fee": shipping_express_fee if shipping_express else 0,
+                "shipping_pickup_fee": shipping_pickup_fee if shipping_pickup else 0,
+                "shipping_bulky_fee": shipping_bulky_fee if shipping_bulky else 0,
+
                 "attributes": {
                     "size": size,
                     "color": color
@@ -433,45 +517,52 @@ def edit_product(pid):
             description,
             variants
         )
-        images = request.files.getlist("images")
+        images = request.files.getlist("images[]")
+        image_urls = []
+        for img in images:
+            if img.filename == "":
+                continue
 
-        if images:
-
-            image_urls = []
-
-            for img in images:
-
-                if img.filename == "":
-                    continue
-
-                filename = secure_filename(img.filename)
-
-                save_path = os.path.join(
-                    "app/static/uploads",
-                    filename
-                )
-
-                img.save(save_path)
-
-                image_urls.append(
-                    "/static/uploads/" + filename
-                )
-
-            SellerRepository.create_product_images(
-                pid,
-                image_urls
-            )
+            import uuid
+            filename = str(uuid.uuid4()) + "_" + secure_filename(img.filename)
+            save_path = os.path.join("app/static/uploads/products", filename)
+            img.save(save_path)
+            image_urls.append(filename)
+        if image_urls:
+            SellerRepository.create_product_images(pid,image_urls)
 
     except Exception as e:
-
+        categories = Category.query.all()
         return render_template(
             "seller/product/product_edit.html",
             product=product,
             variants=product.variants,
+            categories=categories,
             error=str(e),
         )
-
+    flash("Cập nhật sản phẩm thành công", "success")
     return redirect(url_for("seller.product_list"))
+
+@seller_bp.route("/products/image/delete", methods=["POST"])
+@seller_required
+def delete_product_image():
+
+    data = request.get_json()
+
+    image_url = data.get("image_url")
+
+    if not image_url:
+        return jsonify({"error": "No image url"}), 400
+
+    from app.models.product import ProductImage
+
+    img = ProductImage.query.filter_by(image_url=image_url).first()
+
+    if img:
+        db.session.delete(img)
+        db.session.commit()
+
+    return jsonify({"success": True})
 
 @seller_bp.route("/products/<int:pid>/hide")
 @seller_required
@@ -548,20 +639,6 @@ def chat_page():
         "seller/chat.html",
         rooms=rooms,
     )
-
-
-@seller_bp.route("/shipping")
-@seller_required
-def shipping_page():
-
-    user = get_current_user()
-    shop = get_current_shop(user)
-
-    return render_template(
-        "seller/shipping.html",
-        shop=shop,
-    )
-
 
 @seller_bp.route("/promotions")
 @seller_required

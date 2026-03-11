@@ -1,7 +1,7 @@
 /* =========================
 STATUS MESSAGE
 ========================= */
-
+console.log("USER JS START");
 function setStatus(msg, err = false) {
 
     const el = document.getElementById("status-message")
@@ -187,8 +187,10 @@ async function loadProfile() {
 EDIT PROFILE EVENTS
 ========================= */
 
+if (btnEditProfile)
 btnEditProfile.onclick = () => toggleEdit(true)
 
+if (btnCancelEditProfile)
 btnCancelEditProfile.onclick = async () => {
 
     await loadProfile()
@@ -196,6 +198,7 @@ btnCancelEditProfile.onclick = async () => {
 
 }
 
+if (btnSaveProfile)
 btnSaveProfile.onclick = async () => {
 
     try {
@@ -313,61 +316,11 @@ function resetAddress() {
 
     addrName.value = ""
     addrPhone.value = ""
+    addrCity.value = ""
+    addrDistrict.value = ""
+    addrWard.value = ""
     addrLine.value = ""
     addrDefault.checked = false
-
-}
-
-
-/* OPEN MODAL */
-
-btnAddAddress.onclick = () => {
-
-    resetAddress()
-    modal.classList.remove("hidden")
-    loadCities()
-
-}
-
-
-/* CLOSE MODAL */
-
-btnCloseAddress.onclick = () => {
-
-    modal.classList.add("hidden")
-
-}
-
-
-/* SAVE ADDRESS */
-
-btnSaveAddress.onclick = async () => {
-
-    try {
-        const cityText = addrCity.options[addrCity.selectedIndex]?.text || ""
-        const districtText = addrDistrict.options[addrDistrict.selectedIndex]?.text || ""
-        await api("/user/address", "POST", {
-
-            full_name: addrName.value,
-            phone: addrPhone.value,
-            city: cityText,
-            district: districtText,
-            ward: addrWard.value,
-            address_line: addrLine.value,
-            is_default: addrDefault.checked
-
-        })
-
-        modal.classList.add("hidden")
-
-        await loadProfile()
-
-
-    } catch (e) {
-
-        alert("Lỗi khi lưu địa chỉ: " + e.message)
-
-    }
 
 }
 
@@ -402,9 +355,8 @@ LOCATION API
 
 async function loadCities() {
 
-    const res = await fetch("https://provinces.open-api.vn/api/p/?depth=2")
-    const data = await res.json()
-
+    const data = await api("/user/api/provinces")
+    console.log("[address] provinces", data)
     addrCity.innerHTML = `<option value="">Tỉnh / Thành phố</option>`
 
     data.forEach(c => {
@@ -429,12 +381,12 @@ async function loadDistricts(city) {
         return
     }
 
-    const res2 = await fetch(`https://provinces.open-api.vn/api/p/${city}?depth=2`)
-    const data2 = await res2.json()
+    const data2 = await api(`/user/api/districts?province_code=${encodeURIComponent(city)}`)
+    console.log("[address] districts", data2)
 
     addrDistrict.innerHTML = `<option value="">Quận / Huyện</option>`
 
-    data2.districts.forEach(d => {
+    data2.forEach(d => {
 
         const opt = document.createElement("option")
 
@@ -455,16 +407,16 @@ async function loadWards(districtName) {
         return
     }
 
-    const res2 = await fetch(`https://provinces.open-api.vn/api/d/${districtName}?depth=2`)
-    const data2 = await res2.json()
+    const data2 = await api(`/user/api/wards?district_code=${encodeURIComponent(districtName)}`)
+    console.log("[address] wards", data2)
 
     addrWard.innerHTML = `<option value="">Phường / Xã</option>`
 
-    data2.wards.forEach(w => {
+    data2.forEach(w => {
 
         const opt = document.createElement("option")
 
-        opt.value = w.name
+        opt.value = w.code
         opt.textContent = w.name
 
         addrWard.appendChild(opt)
@@ -475,30 +427,97 @@ async function loadWards(districtName) {
 
 
 /* EVENTS */
+function bindAddressEvents() {
 
-addrCity.addEventListener("change", e => {
+    if (btnAddAddress) {
+        btnAddAddress.onclick = async () => {
+            resetAddress()
+            modal.classList.remove("hidden")
 
-    loadDistricts(e.target.value)
+            try {
+                await loadCities()
+            } catch (e) {
+                alert("Không tải được danh sách tỉnh/thành: " + e.message)
+            }
+        }
+    }
 
-})
+    if (btnCloseAddress) {
+        btnCloseAddress.onclick = () => {
+            modal.classList.add("hidden")
+        }
+    }
 
-addrDistrict.addEventListener("change", e => {
+}
 
-    loadWards(e.target.value)
+if (btnSaveAddress) {
 
-})
+btnSaveAddress.onclick = async (e) => {
 
+    e.stopPropagation()
+
+    try {
+
+        const cityText = addrCity.options[addrCity.selectedIndex]?.text || ""
+        const districtText = addrDistrict.options[addrDistrict.selectedIndex]?.text || ""
+        const wardText = addrWard.options[addrWard.selectedIndex]?.text || ""
+
+        await api("/user/address", "POST", {
+            full_name: addrName.value,
+            phone: addrPhone.value,
+            city: cityText,
+            district: districtText,
+            ward: wardText,
+            address_line: addrLine.value,
+            is_default: addrDefault.checked
+        })
+
+        modal.classList.add("hidden")
+        await loadProfile()
+
+    } catch (e) {
+
+        alert("Lỗi khi lưu địa chỉ: " + e.message)
+
+    }
+}
+}
 
 /* =========================
 INIT
 ========================= */
 
-loadProfile()
+document.addEventListener("DOMContentLoaded", () => {
 
-if (modal) {
-    modal.addEventListener("click", (e) => {
-        if (e.target === modal) {
-            modal.classList.add("hidden")
-        }
+    loadProfile()
+    bindAddressEvents()
+
+    /* THÊM ĐOẠN NÀY */
+
+    addrCity.addEventListener("change", async () => {
+        await loadDistricts(addrCity.value)
     })
-}
+
+    addrDistrict.addEventListener("change", async () => {
+        await loadWards(addrDistrict.value)
+    })
+
+    /* ---------------- */
+
+    if (modal) {
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                modal.classList.add("hidden")
+            }
+        })
+        const modalBox = document.querySelector(".modal-box")
+
+        if (modalBox) {
+            modalBox.addEventListener("click", (e) => {
+                e.stopPropagation()
+            })
+        }
+
+    }
+
+})

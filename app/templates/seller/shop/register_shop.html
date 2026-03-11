@@ -1,132 +1,197 @@
-{% extends "seller/layout_seller.html" %}
+{% extends "seller/layout_seller_register.html" %}
 
-{% block content %}
+{% block seller_content %}
+
 <div class="seller-onboard">
-  <h2>Đăng ký trở thành Người bán Shopee</h2>
 
-  <ol class="seller-steps">
-    {% for step in steps %}
-      <li class="{{ 'is-active' if step.active else '' }}">{{ step.label }}</li>
-    {% endfor %}
-  </ol>
+<h2 class="seller-title">Đăng ký trở thành Người bán OneShop</h2>
 
-  {% if error %}
-  <div class="alert alert--error">{{ error }}</div>
-  {% endif %}
+<ol class="seller-steps">
+{% for step in steps %}
+<li class="{{ 'is-active' if step.active else '' }}">{{ step.label }}</li>
+{% endfor %}
+</ol>
 
-  <form method="post" class="seller-form">
 
-  <label for="name">Tên Shop</label>
-  <input id="name" type="text" name="name" maxlength="30" required value="{{ form.name if form else '' }}">
-  <small class="counter">0/30</small>
+{% if error %}
+<div class="alert alert--error">{{ error }}</div>
+{% endif %}
 
-  <div class="pickup-address-block">
-    <label>Địa chỉ lấy hàng</label>
 
-    <div class="pickup-card">
-        <div class="pickup-info">
+<form method="post" class="seller-form">
 
-            <div class="pickup-user">
 
-                <strong>{{ current_user.full_name }}</strong>
+<!-- SHOP NAME -->
 
-                <div class="phone-field">
-                    <label for="phone">Số điện thoại</label>
+<div class="form-group">
 
-                    <input
-                        id="phone"
-                        type="tel"
-                        name="phone"
-                        required
-                        pattern="0[0-9]{9}"
-                        value="{{ form.phone if form else current_user.phone }}"
-                        placeholder="Nhập số điện thoại"
-                    >
+<label for="name">Tên Shop</label>
 
-                </div>
+<input
+id="name"
+type="text"
+name="name"
+maxlength="30"
+required
+value="{{ form.name if form else '' }}"
+>
 
-            </div>
-
-            <div class="pickup-address">
-                {{ form.pickup_address if form and form.pickup_address else "Chưa thiết lập địa chỉ" }}
-            </div>
-
-            <button type="button" class="edit-address-btn">
-                Chỉnh sửa
-            </button>
-
-        </div>
-    </div>
-
-    <input
-      type="hidden"
-      name="pickup_address"
-      value="{{ form.pickup_address if form else '' }}"
-      id="pickupAddressInput"
-    >
-
-  </div>
-
-  <label>Email</label>
-  <input type="email" name="email" required value="{{ form.email if form else '' }}">
-
-  <div class="seller-actions">
-    <button class="btn btn--primary" type="submit">Tiếp theo</button>
-  </div>
-
-  </form>
-
-  <div class="address-modal" id="addressModal">
-    <div class="modal-content">
-
-      <h3>Sửa Địa chỉ</h3>
-
-      <label>Tỉnh/Thành phố/Quận/Huyện/Phường/Xã</label>
-
-      <div class="address-selector">
-
-        <select id="citySelect">
-            <option value="">Chọn Tỉnh/Thành</option>
-        </select>
-
-        <select id="districtSelect">
-            <option value="">Chọn Quận/Huyện</option>
-        </select>
-
-        <select id="wardSelect">
-            <option value="">Chọn Phường/Xã</option>
-        </select>
-
-      </div>
-
-      <label>Địa chỉ chi tiết</label>
-      <textarea id="modalDetail" placeholder="Số nhà, tên đường..."></textarea>
-
-      <div class="modal-actions">
-        <button type="button" id="cancelAddress">Huỷ</button>
-        <button type="button" id="saveAddress">Lưu</button>
-      </div>
-
-    </div>
-  </div>
+<small class="counter">0/30</small>
 
 </div>
+
+
+
+<!-- PICKUP ADDRESS -->
+
+<div class="pickup-address-block">
+
+<label>Địa chỉ lấy hàng</label>
+
+<div class="pickup-card">
+
+<div class="pickup-header">
+<strong>{{ current_user.full_name }}</strong>
+</div>
+
+
+<div class="pickup-phone">
+
+<label>Số điện thoại</label>
+
+<input
+id="phone"
+type="tel"
+name="phone"
+required
+pattern="0[0-9]{9}"
+value="{{ form.phone if form else current_user.phone }}"
+placeholder="Nhập số điện thoại"
+>
+
+</div>
+
+
+<div class="pickup-address">
+
+{{ form.pickup_address if form and form.pickup_address else "Chưa thiết lập địa chỉ" }}
+
+</div>
+
+
+<button type="button" class="edit-address-btn">
+Chỉnh sửa
+</button>
+
+</div>
+
+<input
+type="hidden"
+name="pickup_address"
+value="{{ form.pickup_address if form else '' }}"
+id="pickupAddressInput"
+>
+
+</div>
+
+
+
+<!-- EMAIL -->
+
+<div class="form-group">
+
+<label>Email</label>
+
+<input
+type="email"
+name="email"
+required
+value="{{ form.email if form else '' }}"
+>
+
+</div>
+
+
+
+<!-- ACTION -->
+
+<div class="seller-actions">
+
+<button class="btn-primary" type="submit">
+Tiếp theo
+</button>
+
+</div>
+
+
+</form>
+
+</div>
+
+
+
+<!-- ADDRESS MODAL -->
+
+<div class="address-modal" id="addressModal">
+
+<div class="modal-content">
+
+<h3>Sửa Địa chỉ</h3>
+
+<label>Tỉnh/Thành phố / Quận / Phường</label>
+
+<div class="address-selector">
+
+<select id="citySelect">
+<option value="">Chọn Tỉnh/Thành</option>
+</select>
+
+<select id="districtSelect">
+<option value="">Chọn Quận/Huyện</option>
+</select>
+
+<select id="wardSelect">
+<option value="">Chọn Phường/Xã</option>
+</select>
+
+</div>
+
+<label>Địa chỉ chi tiết</label>
+
+<textarea id="modalDetail" placeholder="Số nhà, tên đường..."></textarea>
+
+<div class="modal-actions">
+
+<button type="button" id="cancelAddress">
+Huỷ
+</button>
+
+<button type="button" id="saveAddress">
+Lưu
+</button>
+
+</div>
+
+</div>
+
+</div>
+
 
 
 <script>
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  const input = document.getElementById("name")
-  const counter = document.querySelector(".counter")
+const input = document.getElementById("name")
+const counter = document.querySelector(".counter")
 
-  if(input){
-      counter.textContent = input.value.length + "/30"
+if(input){
+counter.textContent = input.value.length + "/30"
 
-      input.addEventListener("input", () => {
-          counter.textContent = input.value.length + "/30"
-      })
-  }
+input.addEventListener("input", () => {
+counter.textContent = input.value.length + "/30"
+})
+}
 
 })
 

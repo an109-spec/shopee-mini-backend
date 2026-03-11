@@ -130,7 +130,7 @@ color:#ee4d2d;
 }
 
 .hidden{
-display:none;
+display:none !important;
 }
 
 .modal{

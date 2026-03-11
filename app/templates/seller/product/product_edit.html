@@ -3,7 +3,19 @@
 {% block seller_content %}
 
 <form method="POST" enctype="multipart/form-data" class="seller-form">
+{% if error %}
+<div class="alert alert-error">
+{{ error }}
+</div>
+{% endif %}
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">
+        {{ message }}
+    </div>
+  {% endfor %}
+{% endwith %}
 <div class="product-form">
 
 <!-- ================= PRODUCT INFO ================= -->
@@ -17,20 +29,43 @@
 <label>Mô tả</label>
 <textarea name="description">{{ product.description }}</textarea>
 </div>
+<div class="form-group">
+<label>Danh mục</label>
 
+<div class="category-tags">
+
+{% for c in categories %}
+<label class="category-tag">
+
+<input 
+type="checkbox" 
+name="category_ids[]" 
+value="{{ c.id }}"
+{% if c.id == product.category_id %}checked{% endif %}
+>
+
+<span>{{ c.name }}</span>
+
+</label>
+{% endfor %}
+
+</div>
+
+<small>Chọn tối đa 3 danh mục</small>
+
+</div>
 
 <!-- ================= IMAGE UPLOAD ================= -->
 
 <h3>Ảnh sản phẩm</h3>
 
 <div class="upload-area" id="uploadArea">
-
 <input type="file"
 name="images[]"
 id="imageInput"
 multiple
 hidden>
-
+<input type="hidden" id="thumbnailIndex" value="0">
 <div class="upload-text">
 Kéo ảnh vào đây hoặc click để upload
 </div>
@@ -38,14 +73,98 @@ Kéo ảnh vào đây hoặc click để upload
 </div>
 
 <div id="previewImages" class="preview-grid">
-
 {% for img in product.images %}
-<img src="{{ img.image_url }}">
+<div class="image-item">
+<img src="{{ url_for('static', filename='uploads/products/' + img.image_url) }}">
+<button
+type="button"
+class="delete-img"
+onclick="deleteImage('{{ img.image_url }}', this)"
+>
+×
+</button>
+</div>
 {% endfor %}
+</div>
+
+<!-- ================= SHIPPING ================= -->
+
+<h3>Thông tin vận chuyển</h3>
+
+<div class="shipping-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+
+<div class="form-group">
+<label>Cân nặng (kg)</label>
+<input type="number" name="weight" value="{{ variants[0].weight or '' if variants else '' }}">
+</div>
+
+<div class="form-group">
+<label>Dài (cm)</label>
+<input type="number" name="length" value="{{ variants[0].length or '' if variants else '' }}">
+</div>
+
+<div class="form-group">
+<label>Rộng (cm)</label>
+<input type="number" name="width" value="{{ variants[0].width or '' if variants else '' }}">
+</div>
+
+<div class="form-group">
+<label>Cao (cm)</label>
+<input type="number" name="height" value="{{ variants[0].height or '' if variants else '' }}">
+</div>
 
 </div>
 
+<h3>Phí vận chuyển</h3>
 
+<div class="shipping-grid">
+
+<label>
+<input type="checkbox" name="shipping_fast"
+{% if variants and (variants[0].shipping_fast_fee or 0) > 0 %}checked{% endif %}>
+Hỏa tốc
+</label>
+
+<input type="number" name="shipping_fast_fee" placeholder="Phí" value="{{ variants[0].shipping_fast_fee if variants else '' }}"
+>
+
+<label>
+<input type="checkbox" name="shipping_same_day"
+{% if variants and (variants[0].shipping_same_day_fee or 0) > 0 %}checked{% endif %}>
+Trong ngày
+</label>
+
+<input type="number" name="shipping_same_day_fee" placeholder="Phí" value="{{ variants[0].shipping_same_day_fee if variants else '' }}"
+>
+
+<label>
+<input type="checkbox" name="shipping_express"
+{% if variants and (variants[0].shipping_express_fee or 0) > 0 %}checked{% endif %}>
+Nhanh
+</label>
+
+<input type="number" name="shipping_express_fee" placeholder="Phí" value="{{ variants[0].shipping_express_fee if variants else '' }}"
+>
+
+<label>
+<input type="checkbox" name="shipping_pickup"
+{% if variants and (variants[0].shipping_pickup_fee or 0) > 0 %}checked{% endif %}>
+Tự nhận
+</label>
+
+<input type="number" name="shipping_pickup_fee" placeholder="Phí" value="{{ variants[0].shipping_pickup_fee if variants else '' }}"
+>
+
+<label>
+<input type="checkbox" name="shipping_bulky"
+{% if variants and (variants[0].shipping_bulky_fee or 0) > 0 %}checked{% endif %}>
+Cồng kềnh
+</label>
+
+<input type="number" name="shipping_bulky_fee" placeholder="Phí" value="{{ variants[0].shipping_bulky_fee if variants else '' }}"
+>
+
+</div>
 
 <!-- ================= VARIANT GENERATOR ================= -->
 
@@ -79,7 +198,7 @@ Tạo phân loại
 
 <input id="bulkPrice" placeholder="Giá tất cả">
 
-<input id="bulkStock" placeholder="Tồn kho tất cả">
+<input id="bulkStock" type="number" placeholder="Tồn kho tất cả"> 
 
 <button type="button" onclick="setBulkPrice()">Áp dụng</button>
 
@@ -108,7 +227,16 @@ Tạo phân loại
 <tr>
 
 <td>
+
+{% if v.image_url %}
+<img src="{{ v.image_url }}" width="60">
+<input type="hidden" name="variant_old_image[]" value="{{ v.image_url }}">
+{% else %}
+<input type="hidden" name="variant_old_image[]" value="">
+{% endif %}
+
 <input type="file" name="variant_image[]" accept="image/*">
+
 </td>
 
 <td>
@@ -120,7 +248,10 @@ Tạo phân loại
 </td>
 
 <td>
+<div class="price-input">
 <input type="number" name="variant_price[]" value="{{ v.price }}">
+<div class="price-text"></div>
+</div>
 </td>
 
 <td>

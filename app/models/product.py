@@ -127,7 +127,19 @@ class ProductVariant(BaseModel):
     stock = db.Column(db.Integer, nullable=False, default=0)
 
     image_url = db.Column(db.String(500), nullable=True)
+    # ================= SHIPPING =================
 
+    weight = db.Column(db.Numeric(10,2), nullable=True)
+
+    length = db.Column(db.Numeric(10,2), nullable=True)
+    width = db.Column(db.Numeric(10,2), nullable=True)
+    height = db.Column(db.Numeric(10,2), nullable=True)
+
+    shipping_fast_fee = db.Column(db.Integer, default=0)
+    shipping_same_day_fee = db.Column(db.Integer, default=0)
+    shipping_express_fee = db.Column(db.Integer, default=0)
+    shipping_pickup_fee = db.Column(db.Integer, default=0)
+    shipping_bulky_fee = db.Column(db.Integer, default=0)
     product = db.relationship(
         "app.models.product.Product",
         back_populates="variants"

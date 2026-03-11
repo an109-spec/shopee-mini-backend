@@ -150,3 +150,32 @@ def set_default_address(address_id: str):
         return jsonify({"addresses": addresses}), 200
     except AppException as e:
         return jsonify({"error": str(e)}), e.status_code
+
+
+@user_bp.route("/api/provinces", methods=["GET"])
+def provinces():
+    try:
+        data = UserService.list_provinces()
+        return jsonify(data), 200
+    except AppException as e:
+        return jsonify({"error": str(e)}), e.status_code
+
+
+@user_bp.route("/api/districts", methods=["GET"])
+def districts():
+    try:
+        province_code = (request.args.get("province_code") or "").strip()
+        data = UserService.list_districts(province_code)
+        return jsonify(data), 200
+    except AppException as e:
+        return jsonify({"error": str(e)}), e.status_code
+
+
+@user_bp.route("/api/wards", methods=["GET"])
+def wards():
+    try:
+        district_code = (request.args.get("district_code") or "").strip()
+        data = UserService.list_wards(district_code)
+        return jsonify(data), 200
+    except AppException as e:
+        return jsonify({"error": str(e)}), e.status_code

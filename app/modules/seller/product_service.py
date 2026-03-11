@@ -17,7 +17,7 @@ class SellerProductCreateDTO:
     stock: int
     category_id: int | None
     images: list[str]
-
+    variants: list[dict]
 
 @dataclass
 class SellerProductUpdateDTO:
@@ -295,10 +295,3 @@ class SellerProductService:
         SellerRepository.create_product_variants(product_id, variants)
 
         SellerRepository.commit()
-@dataclass
-class SellerProductCreateDTO:
-    name: str
-    description: str | None
-    category_id: int | None
-    images: list[str]
-    variants: list[dict]

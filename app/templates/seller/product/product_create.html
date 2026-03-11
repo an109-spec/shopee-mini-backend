@@ -129,7 +129,16 @@ value="{{ stocks[i] }}">
 </td>
 
 <td>
-<input type="number" name="variant_price[]" min="0">
+<div class="price-input">
+
+<input type="number"
+name="variant_price[]"
+min="0"
+step="1000">
+
+<div class="price-text"></div>
+
+</div>
 </td>
 
 <td>
@@ -151,7 +160,63 @@ value="{{ stocks[i] }}">
 <button type="button" onclick="addVariant()">
 + Thêm phân loại
 </button>
+<h3>Vận chuyển</h3>
 
+<div class="shipping-box">
+
+<label>
+<input type="checkbox" name="shipping_fast">
+Hỏa tốc
+</label>
+<input type="number" name="shipping_fast_fee" placeholder="Phí ship">
+
+<br>
+
+<label>
+<input type="checkbox" name="shipping_same_day">
+Trong ngày
+</label>
+<input type="number" name="shipping_same_day_fee" placeholder="Phí ship">
+
+<br>
+
+<label>
+<input type="checkbox" name="shipping_express">
+Nhanh
+</label>
+<input type="number" name="shipping_express_fee" placeholder="Phí ship">
+
+<br>
+
+<label>
+<input type="checkbox" name="shipping_pickup">
+Tủ nhận hàng
+</label>
+<input type="number" name="shipping_pickup_fee" placeholder="Phí ship">
+
+<br>
+
+<label>
+<input type="checkbox" name="shipping_bulky">
+Hàng cồng kềnh
+</label>
+<input type="number" name="shipping_bulky_fee" placeholder="Phí ship">
+
+</div>
+
+
+<h3>Thông số vận chuyển</h3>
+
+<label>Trọng lượng (kg)</label>
+<input type="number" step="0.1" name="weight">
+
+<label>Kích thước</label>
+
+<input type="number" name="length" placeholder="Dài">
+
+<input type="number" name="width" placeholder="Rộng">
+
+<input type="number" name="height" placeholder="Cao">
 
 <label>Hình ảnh sản phẩm (tối đa 9)</label>
 

@@ -8,21 +8,18 @@
 {% block content %}
 <div class="auth-page">
   <div class="auth-page__header">
-    <div class="auth-page__brand">Shopee <span>Đăng nhập</span></div>
+    <div class="auth-page__brand">OneShop <span>Đăng nhập</span></div>
     <a href="#">Bạn cần giúp đỡ?</a>
   </div>
 
   <div class="auth auth--split auth--{{ selected_role or 'buyer' }}">
     <section class="auth__hero">
-      <div class="auth__hero-logo">Shopee</div>
+      <div class="auth__hero-logo">OneShop
+      </div>
       <p>Nền tảng thương mại điện tử yêu thích ở Đông Nam Á & Đài Loan</p>
     </section>
     <section class="auth__container">
       <h2 class="auth__title">Đăng nhập</h2>
-      <div class="auth__role-switch" role="tablist" aria-label="Chọn loại tài khoản">
-        <a href="{{ url_for('auth.login', role='buyer') }}" class="auth__role-btn {{ 'is-active' if (selected_role or 'buyer') == 'buyer' else '' }}">Người mua</a>
-        <a href="{{ url_for('auth.login', role='seller') }}" class="auth__role-btn {{ 'is-active' if (selected_role or 'buyer') == 'seller' else '' }}">Người bán</a>
-      </div>
       {% if error %}<div class="alert alert--error">{{ error }}</div>{% endif %}
       <form method="POST" class="auth__form">
         <input type="hidden" name="next" value="{{ next_url or '' }}">
@@ -38,7 +35,7 @@
       </form>
       <div class="auth__links auth__links--row">
         <a href="{{ url_for('auth.forgot_password') }}">Quên mật khẩu</a>
-        <span>Bạn mới biết đến Shopee? <a href="{{ url_for('auth.register') }}">Đăng ký</a></span>
+        <span>Bạn mới biết đến OneShop? <a href="{{ url_for('auth.register') }}">Đăng ký</a></span>
       </div>
     </section>
   </div>

@@ -5,7 +5,9 @@ from app.models import Product, ProductImage, Shop, Order, OrderItem, FlashSale,
 from app.core.enums.order_status import OrderStatus
 from app.core.enums.product_status import ProductStatus
 from app.models.product import ProductVariant, VariantAttribute
-
+import os
+import uuid
+from werkzeug.utils import secure_filename
 class SellerRepository:
 
     @staticmethod
@@ -145,18 +147,47 @@ class SellerRepository:
     @staticmethod
     def create_product_variants(product_id, variants):
 
-        for v in variants:
+        for data in variants:
 
+            image_file = data.get("image")
+            image_url = None
+
+            if hasattr(image_file, "filename") and image_file.filename:
+
+                filename = str(uuid.uuid4()) + "_" + secure_filename(image_file.filename)
+
+                save_path = os.path.join(
+                    "app/static/uploads/products",
+                    filename
+                )
+
+                image_file.save(save_path)
+
+                image_url = "/static/uploads/products/" + filename
+            elif isinstance(image_file, str):
+                image_url = image_file
             variant = ProductVariant(
                 product_id=product_id,
-                price=v["price"],
-                stock=v["stock"]
+                price=data["price"],
+                stock=data["stock"],
+                image_url=image_url,
+
+                weight=data.get("weight"),
+                length=data.get("length"),
+                width=data.get("width"),
+                height=data.get("height"),
+
+                shipping_fast_fee=data.get("shipping_fast_fee", 0),
+                shipping_same_day_fee=data.get("shipping_same_day_fee", 0),
+                shipping_express_fee=data.get("shipping_express_fee", 0),
+                shipping_pickup_fee=data.get("shipping_pickup_fee", 0),
+                shipping_bulky_fee=data.get("shipping_bulky_fee", 0),
             )
 
             db.session.add(variant)
             db.session.flush()
 
-            for name, value in v["attributes"].items():
+            for name, value in data["attributes"].items():
 
                 attr = VariantAttribute(
                     variant_id=variant.id,

@@ -7,7 +7,11 @@ from decimal import Decimal
 from .repository import SellerRepository
 
 class SellerService:
-
+    @staticmethod
+    def get_current_shop(user):
+        if not user:
+            return None
+        return Shop.query.filter_by(owner_id=user.id).first()
     @staticmethod
     def _validate_step_1(dto: CreateShopDTO, current_shop_id: int | None = None):
         if not dto.name or len(dto.name.strip()) < 3:
@@ -30,6 +34,10 @@ class SellerService:
 
         if email_query.first() or phone_query.first():
             raise ValidationError("Email hoặc số điện thoại đã tồn tại")
+        print("EMAIL:", normalized_email)
+        print("PHONE:", normalized_phone)
+        print("EMAIL FOUND:", email_query.first())
+        print("PHONE FOUND:", phone_query.first())
     @staticmethod
     def register_shop(user, dto: CreateShopDTO):
         SellerService._validate_step_1(dto)
@@ -44,6 +52,7 @@ class SellerService:
             pickup_address=dto.pickup_address.strip(),
             contact_email=dto.email.strip().lower(),
             contact_phone=dto.phone.strip(),
+            onboarding_completed=False,
             onboarding_step=2,
         )
 

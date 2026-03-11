@@ -108,12 +108,14 @@ def login():
             return redirect(next_url)
 
         if role == "seller":
-            if shop:
-                return redirect(url_for("seller.seller_center"))
-            return redirect(url_for("seller.register_shop"))
+            if not shop:
+                return redirect(url_for("seller.register_shop"))
 
+            if not shop.onboarding_completed:
+                return redirect(url_for("seller.setup_shipping"))
+
+            return redirect(url_for("seller.dashboard"))
         return redirect(url_for("home.home_page"))
-
 
     except (ValidationError, UnauthorizedError) as e:
         return render_template(

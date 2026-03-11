@@ -30,19 +30,18 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ===============================
      Shop name counter
   =============================== */
-  const input = document.querySelector('input[name="name"]');
+  const shopNameInput = document.querySelector('input[name="name"]');
   const counter = document.querySelector(".counter");
 
-  if (input && counter) {
+  if (shopNameInput && counter) {
 
-    counter.textContent = input.value.length + "/30";
+    counter.textContent = shopNameInput.value.length + "/30";
 
-    input.addEventListener("input", () => {
-      counter.textContent = input.value.length + "/30";
+    shopNameInput.addEventListener("input", () => {
+      counter.textContent = shopNameInput.value.length + "/30";
     });
 
   }
-
 
   /* ===============================
      Address Modal
@@ -156,16 +155,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-const uploadBox = document.getElementById("uploadBox")
-const input = document.getElementById("imageInput")
-const preview = document.getElementById("preview")
+const uploadBox = document.getElementById("uploadArea")
+const imageInput = document.getElementById("imageInput")
+const preview = document.getElementById("previewImages")
 const thumbnailInput = document.getElementById("thumbnailIndex")
 
-if(!uploadBox) return
+if(!uploadBox || !imageInput || !preview) return
 
 let filesStore = []
 
-uploadBox.onclick = () => input.click()
+uploadBox.onclick = () => {
+    if(imageInput) imageInput.click()
+}
+
 
 uploadBox.addEventListener("dragover", e=>{
     e.preventDefault()
@@ -176,8 +178,8 @@ uploadBox.addEventListener("drop", e=>{
     handleFiles(e.dataTransfer.files)
 })
 
-input.addEventListener("change", ()=>{
-    handleFiles(input.files)
+imageInput.addEventListener("change", ()=>{
+    handleFiles(imageInput.files)
 })
 
 function handleFiles(files){
@@ -206,21 +208,23 @@ function renderPreview(){
         reader.onload = e =>{
 
             const div = document.createElement("div")
-            div.className="preview-item"
+            div.className="image-item"
 
-            if(index === Number(thumbnailInput.value)){
+            if(thumbnailInput && index === Number(thumbnailInput.value)){
                 div.classList.add("active")
             }
 
             div.innerHTML = `
                 <img src="${e.target.result}">
-                ${index === Number(thumbnailInput.value) ? "<span>Ảnh đại diện</span>" : ""}
+                ${thumbnailInput && index === Number(thumbnailInput.value) ? "<span>Ảnh đại diện</span>" : ""}
             `
 
             div.onclick = ()=>{
-                thumbnailInput.value=index
-                renderPreview()
-            }
+              if(thumbnailInput){
+                  thumbnailInput.value = index
+              }
+              renderPreview()
+          }
 
             preview.appendChild(div)
         }
@@ -289,18 +293,17 @@ btn.closest("tr").remove()
 
 function generateVariants(){
 
-const sizes=document
+const sizes = document
 .getElementById("sizeInput")
 .value
 .split(",")
 
-const colors=document
+const colors = document
 .getElementById("colorInput")
 .value
 .split(",")
 
-const body=document
-.getElementById("variantBody")
+const body = document.getElementById("variantBody")
 
 body.innerHTML=""
 
@@ -310,6 +313,10 @@ colors.forEach(color=>{
 
 const row=`
 <tr>
+
+<td>
+<input type="file" name="variant_image[]" accept="image/*">
+</td>
 
 <td>
 <input name="variant_size[]" value="${size.trim()}">
@@ -327,7 +334,7 @@ const row=`
 </td>
 
 <td>
-<input type="number" name="variant_stock[]">
+<input type="number" name="variant_stock[]" value="0">
 </td>
 
 <td>
@@ -469,6 +476,8 @@ textBox.innerText = numberToVietnamese(value)
 })
 
 })
+document.addEventListener("DOMContentLoaded", () => {
+
 const checkboxes = document.querySelectorAll(
 'input[name="category_ids[]"]'
 )
@@ -492,6 +501,7 @@ alert("Chỉ được chọn tối đa 3 danh mục")
 })
 
 })
+})
 const bulkPrice = document.getElementById("bulkPrice")
 
 if(bulkPrice){
@@ -514,6 +524,32 @@ bulkPrice.parentNode.appendChild(helper)
 
 helper.innerText = text
 
+})
+
+}
+function deleteImage(url,btn){
+
+fetch("/seller/products/image/delete",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+image_url:url
+})
+})
+.then(res=>res.json())
+.then(data=>{
+
+if(data.success){
+btn.parentElement.remove()
+}else{
+alert("Xóa ảnh thất bại")
+}
+
+})
+.catch(()=>{
+alert("Server error")
 })
 
 }

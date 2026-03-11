@@ -3,6 +3,7 @@ from decimal import Decimal
 from hashlib import sha256
 from urllib.parse import urlparse
 import json
+import requests
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 from uuid import uuid4
@@ -18,6 +19,7 @@ from app.models import Order, OrderItem, Product, User, UserProfile
 
 class UserService:
     AVATAR_STYLES = ("avataaars", "bottts", "identicon", "micah", "notionists")
+    ADDRESS_SOURCE_URL = "https://provinces.open-api.vn/api"
 
     # ==============================
     # INTERNAL HELPERS
@@ -150,7 +152,51 @@ class UserService:
     @staticmethod
     def _save_addresses(profile: UserProfile, addresses: list[dict]) -> None:
         profile.address = json.dumps(addresses, ensure_ascii=False)
-        
+    
+    @staticmethod
+    def _fetch_address_json(path: str) -> dict | list:
+        try:
+            response = requests.get(f"{UserService.ADDRESS_SOURCE_URL}{path}", timeout=8)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException:
+            raise AppException("Không thể tải dữ liệu địa chỉ", status_code=503)
+
+    @staticmethod
+    def list_provinces() -> list[dict]:
+        data = UserService._fetch_address_json("/p/")
+        if not isinstance(data, list):
+            return []
+        return [
+            {"code": str(item.get("code")), "name": str(item.get("name") or "").strip()}
+            for item in data
+            if isinstance(item, dict) and item.get("code") is not None
+        ]
+
+    @staticmethod
+    def list_districts(province_code: str) -> list[dict]:
+        if not province_code:
+            raise ValidationError("Thiếu mã Tỉnh/Thành phố")
+        data = UserService._fetch_address_json(f"/p/{province_code}?depth=2")
+        districts = data.get("districts", []) if isinstance(data, dict) else []
+        return [
+            {"code": str(item.get("code")), "name": str(item.get("name") or "").strip()}
+            for item in districts
+            if isinstance(item, dict) and item.get("code") is not None
+        ]
+
+    @staticmethod
+    def list_wards(district_code: str) -> list[dict]:
+        if not district_code:
+            raise ValidationError("Thiếu mã Quận/Huyện")
+        data = UserService._fetch_address_json(f"/d/{district_code}?depth=2")
+        wards = data.get("wards", []) if isinstance(data, dict) else []
+        return [
+            {"code": str(item.get("code")), "name": str(item.get("name") or "").strip()}
+            for item in wards
+            if isinstance(item, dict) and item.get("code") is not None
+        ]
+
     @staticmethod
     def update_profile(user_id: int, payload: dict) -> dict:
         user = UserService._get_user(user_id)

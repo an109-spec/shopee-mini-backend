@@ -45,17 +45,14 @@ def seller_required(func):
         if not user:
             return redirect(url_for("auth.login", role="seller"))
 
-        shop = Shop.query.filter_by(owner_id=user.id).first()
+        shop = user.shop
 
         if not shop:
-            flash("Bạn cần đăng ký người bán để truy cập kênh người bán", "warning")
-            return redirect(url_for("seller.register_shop"))
-        if not user.is_seller:
-            flash("Bạn cần đăng ký người bán để truy cập kênh người bán", "warning")
+            flash("Bạn cần đăng ký người bán trước", "warning")
             return redirect(url_for("seller.register_shop"))
 
         if not shop.onboarding_completed:
-            return redirect(url_for("seller.seller_center"))
+            return redirect(url_for("seller.setup_shipping"))
 
         return func(*args, **kwargs)
 
