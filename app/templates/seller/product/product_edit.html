@@ -64,7 +64,7 @@ value="{{ c.id }}"
 name="images[]"
 id="imageInput"
 multiple
-hidden>
+style="display:none">
 <input type="hidden" id="thumbnailIndex" value="0">
 <div class="upload-text">
 Kéo ảnh vào đây hoặc click để upload
@@ -75,7 +75,7 @@ Kéo ảnh vào đây hoặc click để upload
 <div id="previewImages" class="preview-grid">
 {% for img in product.images %}
 <div class="image-item">
-<img src="{{ url_for('static', filename='uploads/products/' + img.image_url) }}">
+<img src="{{ img.image_url }}">
 <button
 type="button"
 class="delete-img"
@@ -231,6 +231,14 @@ Tạo phân loại
 {% if v.image_url %}
 <img src="{{ v.image_url }}" width="60">
 <input type="hidden" name="variant_old_image[]" value="{{ v.image_url }}">
+<button
+type="button"
+class="delete-img"
+onclick="deleteImage('{{ v.image_url }}', this)"
+>
+×
+</button>
+
 {% else %}
 <input type="hidden" name="variant_old_image[]" value="">
 {% endif %}

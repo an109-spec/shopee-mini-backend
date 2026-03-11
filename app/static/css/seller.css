@@ -341,6 +341,7 @@ gap:10px;
 }
 .image-item{
 position:relative;
+display:inline-block;
 }
 
 .image-item img{
@@ -351,15 +352,18 @@ border-radius:6px;
 }
 .delete-img{
 position:absolute;
-top:-6px;
-right:-6px;
-background:red;
-color:white;
+top:4px;
+right:4px;
+background:#ff4d4f;
+color:#fff;
 border:none;
-border-radius:50%;
 width:22px;
 height:22px;
+border-radius:50%;
 cursor:pointer;
+font-size:14px;
+line-height:20px;
+padding:0;
 }
 .preview-grid img{
 width:120px;

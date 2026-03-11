@@ -13,8 +13,6 @@ from .repository import SellerRepository
 class SellerProductCreateDTO:
     name: str
     description: str | None
-    price: Decimal
-    stock: int
     category_id: int | None
     images: list[str]
     variants: list[dict]

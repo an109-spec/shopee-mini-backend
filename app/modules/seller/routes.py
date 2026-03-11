@@ -527,7 +527,7 @@ def edit_product(pid):
             filename = str(uuid.uuid4()) + "_" + secure_filename(img.filename)
             save_path = os.path.join("app/static/uploads/products", filename)
             img.save(save_path)
-            image_urls.append(filename)
+            image_urls.append(f"/static/uploads/products/{filename}")
         if image_urls:
             SellerRepository.create_product_images(pid,image_urls)
 
@@ -556,7 +556,14 @@ def delete_product_image():
 
     from app.models.product import ProductImage
 
-    img = ProductImage.query.filter_by(image_url=image_url).first()
+    from os.path import basename
+
+    image_name = basename(image_url)
+    img = ProductImage.query.filter(
+        (ProductImage.image_url == image_url)
+        | (ProductImage.image_url == image_name)
+        | (ProductImage.image_url.like(f"%/{image_name}"))
+    ).first()
 
     if img:
         db.session.delete(img)

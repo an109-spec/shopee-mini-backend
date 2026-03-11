@@ -163,11 +163,23 @@ const thumbnailInput = document.getElementById("thumbnailIndex")
 if(!uploadBox || !imageInput || !preview) return
 
 let filesStore = []
+function syncInputFiles(){
 
+const dt = new DataTransfer()
+
+filesStore.forEach(file=>{
+dt.items.add(file)
+})
+
+imageInput.files = dt.files
+
+}
 uploadBox.onclick = () => {
     if(imageInput) imageInput.click()
 }
-
+uploadBox.addEventListener("dragenter", e=>{
+e.preventDefault()
+})
 
 uploadBox.addEventListener("dragover", e=>{
     e.preventDefault()
@@ -175,6 +187,7 @@ uploadBox.addEventListener("dragover", e=>{
 
 uploadBox.addEventListener("drop", e=>{
     e.preventDefault()
+    e.stopPropagation()
     handleFiles(e.dataTransfer.files)
 })
 
@@ -184,23 +197,24 @@ imageInput.addEventListener("change", ()=>{
 
 function handleFiles(files){
 
-    for(const file of files){
+for(const file of files){
 
-        if(filesStore.length >= 9){
-            alert("Chỉ được tối đa 9 ảnh")
-            break
-        }
+if(filesStore.length >= 9){
+alert("Chỉ được tối đa 9 ảnh")
+break
+}
 
-        filesStore.push(file)
-    }
+filesStore.push(file)
 
-    renderPreview()
+}
+
+syncInputFiles()
+renderPreview()
+
 }
 
 function renderPreview(){
-
     preview.innerHTML=""
-
     filesStore.forEach((file,index)=>{
 
         const reader = new FileReader()
@@ -216,8 +230,22 @@ function renderPreview(){
 
             div.innerHTML = `
                 <img src="${e.target.result}">
+                <button type="button" class="delete-img">×</button>
                 ${thumbnailInput && index === Number(thumbnailInput.value) ? "<span>Ảnh đại diện</span>" : ""}
             `
+            const deleteBtn = div.querySelector(".delete-img")
+
+              deleteBtn.onclick = (ev)=>{
+
+              ev.stopPropagation()
+
+              filesStore.splice(index,1)
+
+              syncInputFiles()
+
+              renderPreview()
+
+              }
 
             div.onclick = ()=>{
               if(thumbnailInput){
