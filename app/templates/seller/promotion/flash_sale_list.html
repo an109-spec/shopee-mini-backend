@@ -1,0 +1,193 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block styles %}
+<link rel="stylesheet"
+href="{{ url_for('static', filename='css/seller_promotion.css') }}">
+{% endblock %}
+
+{% block seller_content %}
+
+<h2>⚡ Flash Sale</h2>
+
+<div style="display:flex;gap:10px;margin-bottom:15px">
+
+<a class="btn btn--primary"
+href="/seller/flash-sales/create">
++ Tạo Flash Sale
+</a>
+
+<select id="saleFilter">
+
+<option value="all">All</option>
+<option value="running">Running</option>
+<option value="upcoming">Upcoming</option>
+<option value="ended">Ended</option>
+
+</select>
+
+</div>
+
+<table class="table">
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+<th>Product</th>
+<th>Price</th>
+<th>Stock</th>
+<th>Sold</th>
+<th>Countdown</th>
+<th>Time</th>
+<th>Status</th>
+<th>Analytics</th>
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+<tbody id="saleTable">
+
+{% for s in sales %}
+
+<tr class="saleRow"
+
+data-start="{{ s.start_time.timestamp() }}"
+data-end="{{ s.end_time.timestamp() }}"
+
+>
+
+<td>{{ s.id }}</td>
+
+<td>
+
+<div class="product-name">
+
+⚡ {{ s.variant.product.name }}
+
+</div>
+
+<div class="variant-info">
+
+{{ s.variant.get_attr("size") }}
+/
+{{ s.variant.get_attr("color") }}
+
+</div>
+
+</td>
+
+<td>
+
+<div class="price-old">
+
+{{ "{:,.0f}".format(s.variant.price) }}đ
+
+</div>
+
+<div class="price-new">
+
+{{ "{:,.0f}".format(s.flash_price) }}đ
+
+</div>
+
+</td>
+
+<td>{{ s.stock_limit }}</td>
+
+<td>
+
+{% set percent = 0 %}
+{% if s.stock_limit and s.stock_limit > 0 %}
+  {% set percent = ((s.sold_count / s.stock_limit) * 100) | round %}
+{% endif %}
+
+<div style="width:120px;background:#eee;border-radius:6px">
+  <div class="progress-bar" data-percent="{{ percent }}"></div>
+</div>
+
+<div class="sold-text">
+
+<span class="soldCount">
+{{ s.sold_count }}
+</span>
+/
+{{ s.stock_limit }}
+
+</div>
+
+</td>
+
+<td>
+
+<span class="countdown"
+
+data-end="{{ s.end_time.timestamp() }}">
+
+</span>
+
+</td>
+
+<td>
+
+<div>
+
+{{ s.start_time.strftime("%d/%m %H:%M") }}
+
+</div>
+
+<div style="color:#666;font-size:12px">
+
+{{ s.end_time.strftime("%d/%m %H:%M") }}
+
+</div>
+
+</td>
+
+<td>
+
+<span class="statusLabel"></span>
+
+</td>
+
+<td>
+
+<div class="analytics">
+
+<div>💰 {{ s.revenue or 0 }}</div>
+<div>👁 {{ s.views or 0 }}</div>
+<div>📈 {{ s.conversion or 0 }}%</div>
+
+</div>
+
+</td>
+
+<td>
+
+<a href="/seller/flash-sales/edit/{{ s.id }}"
+class="btn-action btn-edit">
+Edit
+</a>
+
+<a href="/seller/flash-sales/delete/{{ s.id }}"
+class="btn-action btn-delete">
+Delete
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/promotion/flash_sale_ui.js') }}"></script>
+{% endblock %}

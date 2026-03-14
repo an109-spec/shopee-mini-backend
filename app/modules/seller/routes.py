@@ -1,8 +1,6 @@
 import os
 import uuid
-from datetime import datetime
 from decimal import Decimal
-
 from flask import (
     render_template,
     request,
@@ -13,23 +11,26 @@ from flask import (
     flash,
     current_app,
 )
+from datetime import datetime
 from werkzeug.utils import secure_filename
-
 from app.extensions import db
-from app.models import User, Shop, Product, Category
+from app.models import User, Product, Category, ProductVariant, Promotion
 from app.common.security.permission import seller_required
 from app.common.exceptions import ValidationError, AppException
-from app.modules.chat.service import ChatService
-
+from app.modules.product.service import ProductService
 from . import seller_bp
 from .dto import CreateShopDTO, ShippingSetupDTO
 from .service import SellerService
-from .center_service import SellerCenterService, ShopUpdateDTO, PromotionCreateDTO
-from .product_service import SellerProductService, SellerProductUpdateDTO, SellerProductCreateDTO
+from .center_service import SellerCenterService
+from .product_service import SellerProductService, SellerProductCreateDTO
+
 from .repository import SellerRepository
-import os
-from werkzeug.utils import secure_filename
-from flask import flash
+from app.modules.promotion.repository import FlashSaleRepository
+from app.models.product import ProductImage
+from app.modules.promotion.service import VoucherService, PromotionService
+from app.utils.time import utcnow
+
+now = utcnow()
 def get_current_user():
     user_id = session.get("user_id")
     if not user_id:
@@ -523,7 +524,6 @@ def edit_product(pid):
             if img.filename == "":
                 continue
 
-            import uuid
             filename = str(uuid.uuid4()) + "_" + secure_filename(img.filename)
             save_path = os.path.join("app/static/uploads/products", filename)
             img.save(save_path)
@@ -553,8 +553,6 @@ def delete_product_image():
 
     if not image_url:
         return jsonify({"error": "No image url"}), 400
-
-    from app.models.product import ProductImage
 
     from os.path import basename
 
@@ -646,7 +644,11 @@ def chat_page():
         "seller/chat.html",
         rooms=rooms,
     )
-
+################
+#
+# PROMOTIONS   
+#
+################
 @seller_bp.route("/promotions")
 @seller_required
 def promotions_page():
@@ -654,13 +656,105 @@ def promotions_page():
     user = get_current_user()
     shop = get_current_shop(user)
 
-    products = SellerRepository.list_products(shop.id)
-    promotions = SellerRepository.list_flash_sales_for_shop(shop.id)
+    promotions = PromotionService.list_promotions(shop.id)
 
     return render_template(
-        "seller/promotions.html",
-        products=products,
+        "seller/promotion/promotion_list.html",
         promotions=promotions,
+        now=utcnow()
+    )
+@seller_bp.route("/promotions/create")
+@seller_required
+def promotion_create_page():
+
+    user = get_current_user()
+    shop = get_current_shop(user)
+
+    products = Product.query.filter_by(
+        shop_id=shop.id
+    ).all()
+
+    return render_template(
+        "seller/promotion/promotion_create.html",
+        products=products
+    )
+@seller_bp.route("/promotions/<int:pid>/delete")
+@seller_required
+def delete_promotion(pid):
+
+    PromotionService.delete_promotion(pid)
+
+    return redirect("/seller/promotions")
+
+@seller_bp.route("/promotions/<int:id>/edit", methods=["GET", "POST"])
+@seller_required
+def edit_promotion_page(id):
+
+    user = get_current_user()
+    shop = get_current_shop(user)
+
+    promotion = PromotionService.get_promotion(id)
+
+    if request.method == "POST":
+
+        name = request.form["name"]
+        discount = int(request.form["discount_percent"])
+
+        start = datetime.fromisoformat(request.form["start_time"])
+        end = datetime.fromisoformat(request.form["end_time"])
+
+        PromotionService.update_promotion(
+            id,
+            name,
+            discount,
+            start,
+            end
+        )
+
+        return redirect("/seller/promotions")
+
+    products = ProductService.get_products_by_shop(shop.id)
+
+    return render_template(
+        "seller/promotion/promotion_edit.html",
+        promotion=promotion,
+        products=products
+    )
+##############
+#
+# flash-sales
+#
+##############
+@seller_bp.route("/flash-sales")
+@seller_required
+def flash_sales_page():
+
+    user = get_current_user()
+    shop = get_current_shop(user)
+
+    sales = FlashSaleRepository.list_flash_sales_for_shop(shop.id)
+
+    return render_template(
+        "seller/promotion/flash_sale_list.html",
+        sales=sales
+    )
+
+@seller_bp.route("/flash-sales/create")
+@seller_required
+def flash_sale_create_page():
+
+    user = get_current_user()
+    shop = get_current_shop(user)
+
+    from app.models.product import Product
+
+    products = Product.query.filter_by(
+        shop_id=shop.id
+    ).all()
+
+    return render_template(
+        "seller/promotion/flash_sale_create.html",
+        products=products
     )
 
 
@@ -710,3 +804,38 @@ def become_seller():
         return redirect(url_for("seller.seller_center"))
 
     return redirect(url_for("seller.register_shop"))
+
+
+@seller_bp.route("/vouchers")
+@seller_required
+def voucher_page():
+
+    user = get_current_user()
+    shop = get_current_shop(user)
+
+    vouchers = VoucherService.list_vouchers(shop.id)
+
+    return render_template(
+        "seller/promotion/voucher_list.html",
+        vouchers=vouchers
+    )
+@seller_bp.route("/api/product/<int:product_id>/variants")
+@seller_required
+def get_variants(product_id):
+
+    variants = ProductVariant.query.filter_by(
+        product_id=product_id
+    ).all()
+
+    data = []
+
+    for v in variants:
+        data.append({
+            "id": v.id,
+            "size": v.get_attr("size"),
+            "color": v.get_attr("color"),
+            "stock": v.stock,
+            "price": float(v.price)
+            })
+
+    return jsonify(data)

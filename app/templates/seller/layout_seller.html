@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Kênh Người Bán{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/seller.css') }}">
-
+  {% block styles %}{% endblock %}
 </head>
 
 <body>
@@ -25,14 +25,66 @@
 
 <main class="seller-main-layout">
   <aside class="seller-sidebar">
-    <a href="{{ url_for('seller.dashboard') }}">Dashboard</a>
-    <a href="{{ url_for('seller.product_list') }}">Products</a>
-    <a href="{{ url_for('seller.orders_page') }}">Orders</a>
-    <a href="{{ url_for('seller.chat_page') }}">Chat</a>
-    <a href="{{ url_for('seller.promotions_page') }}">Promotions</a>
-    <a href="{{ url_for('seller.revenue_page') }}">Revenue</a>
-    <a href="{{ url_for('seller.shop_settings_page') }}">Shop Settings</a>
-  </aside>
+
+<div class="sidebar-section">
+<a class="sidebar-item" href="{{ url_for('seller.dashboard') }}">
+<span class="icon">📊</span>
+Dashboard
+</a>
+
+<a class="sidebar-item" href="{{ url_for('seller.product_list') }}">
+<span class="icon">📦</span>
+Products
+</a>
+
+<a class="sidebar-item" href="{{ url_for('seller.orders_page') }}">
+<span class="icon">🧾</span>
+Orders
+</a>
+
+<a class="sidebar-item" href="{{ url_for('seller.chat_page') }}">
+<span class="icon">💬</span>
+Chat
+</a>
+</div>
+
+
+<div class="sidebar-group">
+
+<div class="sidebar-title">
+🎯 Promotions
+</div>
+
+<a class="sidebar-sub" href="/seller/promotions">
+Promotion
+</a>
+
+<a class="sidebar-sub" href="/seller/flash-sales">
+Flash Sale
+</a>
+
+<a class="sidebar-sub" href="/seller/vouchers">
+Voucher
+</a>
+
+</div>
+
+
+<div class="sidebar-section">
+
+<a class="sidebar-item" href="{{ url_for('seller.revenue_page') }}">
+<span class="icon">💰</span>
+Revenue
+</a>
+
+<a class="sidebar-item" href="{{ url_for('seller.shop_settings_page') }}">
+<span class="icon">⚙</span>
+Shop Settings
+</a>
+
+</div>
+
+</aside>
 
   <section class="seller-main-content">
     {% block seller_content %}{% endblock %}
@@ -40,6 +92,7 @@
 </main>
 
 <script src="{{ url_for('static', filename='js/seller.js') }}"></script>
-
+{% block scripts %}
+{% endblock %}
 </body>
 </html>

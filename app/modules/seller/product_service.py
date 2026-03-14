@@ -5,7 +5,6 @@ import re
 from app.common.exceptions import ForbiddenError, NotFoundError, ValidationError, AppException
 from app.core.enums.product_status import ProductStatus
 from app.models import Product
-from app.models.product import ProductVariant
 from .repository import SellerRepository
 
 
@@ -166,14 +165,15 @@ class SellerProductService:
 
         SellerProductService._validate_stock(stock)
 
-        product = SellerRepository.get_product(product_id)
+        product = SellerRepository.get_product(shop_id, product_id)
 
         if not product or product.status == ProductStatus.DELETED:
             raise NotFoundError("Không tìm thấy sản phẩm")
 
         SellerProductService._check_ownership(product, shop_id)
 
-        product.stock_quantity = stock
+        for v in product.variants:
+            v.stock = stock
 
         if stock == 0:
             product.status = ProductStatus.OUT_OF_STOCK

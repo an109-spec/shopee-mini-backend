@@ -153,3 +153,11 @@ class ProductService:
             }
             for review in reviews
         ]
+    @staticmethod
+    def get_products_by_shop(shop_id: int):
+        products = Product.query.filter(
+            Product.shop_id == shop_id,
+            Product.status == ProductStatus.ACTIVE
+        ).order_by(Product.created_at.desc()).all()
+
+        return products

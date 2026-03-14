@@ -1,0 +1,43 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block seller_content %}
+
+<h2>Voucher</h2>
+
+<a class="btn btn--primary"
+href="/seller/vouchers/create">
+
++ Tạo voucher
+
+</a>
+
+<table>
+
+<tr>
+
+<th>Code</th>
+<th>Discount</th>
+<th>Min Order</th>
+<th>Expire</th>
+
+</tr>
+
+{% for v in vouchers %}
+
+<tr>
+
+<td>{{ v.code }}</td>
+
+<td>{{ v.discount_value }}</td>
+
+<td>{{ v.min_order_amount }}</td>
+
+<td>{{ v.expired_at }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block styles %}
+<link rel="stylesheet"
+href="{{ url_for('static', filename='css/seller_promotion.css') }}">
+{% endblock %}
+
+{% block seller_content %}
+
+<h2>Chỉnh sửa chương trình khuyến mãi</h2>
+
+<form method="POST"
+action="{{ url_for('seller.edit_promotion_page', id=promotion.id) }}"
+class="seller-form">
+
+<label>Tên chương trình</label>
+<input name="name"
+value="{{ promotion.name }}"
+required>
+
+<label>Chọn sản phẩm</label>
+
+<div class="product-grid">
+{% for p in products %}
+
+<div class="product-box collapsible">
+
+<label>
+<input type="checkbox"
+class="productCheck"
+value="{{ p.id }}">
+
+<strong>{{ p.name }}</strong>
+</label>
+
+<div id="variantBox-{{ p.id }}"
+class="variant-box"></div>
+
+</div>
+
+{% endfor %}
+</div>
+
+<label>
+<input type="checkbox" id="selectAllVariants">
+Chọn tất cả
+</label>
+
+<label>Giảm giá %</label>
+
+<input type="number"
+name="discount_percent"
+min="1"
+max="90"
+value="{{ promotion.discount_percent }}">
+
+<label>Bắt đầu</label>
+
+<input type="datetime-local"
+name="start_time"
+value="{{ promotion.start_time.strftime('%Y-%m-%dT%H:%M') }}"
+required>
+
+<label>Kết thúc</label>
+
+<input type="datetime-local"
+name="end_time"
+value="{{ promotion.end_time.strftime('%Y-%m-%dT%H:%M') }}"
+required>
+
+<button class="btn btn--primary">
+Cập nhật promotion
+</button>
+
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/promotion/promotion_common.js') }}"></script>
+{% endblock %}

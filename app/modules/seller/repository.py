@@ -1,13 +1,13 @@
-from datetime import datetime
 from sqlalchemy import func
 from app.extensions import db
-from app.models import Product, ProductImage, Shop, Order, OrderItem, FlashSale, ChatRoom, Message
+from app.models import ProductImage, Shop, Order, OrderItem, ChatRoom, Message
 from app.core.enums.order_status import OrderStatus
 from app.core.enums.product_status import ProductStatus
-from app.models.product import ProductVariant, VariantAttribute
+from app.models.product import ProductVariant, VariantAttribute, Product
 import os
 import uuid
 from werkzeug.utils import secure_filename
+
 class SellerRepository:
 
     @staticmethod
@@ -43,8 +43,6 @@ class SellerRepository:
 
     @staticmethod
     def get_product(shop_id, product_id):
-        from app.models import Product
-
         return Product.query.filter_by(
             id=product_id,
             shop_id=shop_id
@@ -96,32 +94,6 @@ class SellerRepository:
             .filter_by(room_id=room_id)
             .order_by(Message.created_at.asc())
             .limit(limit)
-            .all()
-        )
-
-    @staticmethod
-    def create_flash_sale(product_id: int, discount_price, start_time: datetime, end_time: datetime):
-
-        flash_sale = FlashSale(
-            product_id=product_id,
-            discount_price=discount_price,
-            start_time=start_time,
-            end_time=end_time,
-            is_active=True,
-        )
-
-        db.session.add(flash_sale)
-        db.session.flush()
-
-        return flash_sale
-
-    @staticmethod
-    def list_flash_sales_for_shop(shop_id: int):
-        return (
-            FlashSale.query
-            .join(Product, Product.id == FlashSale.product_id)
-            .filter(Product.shop_id == shop_id)
-            .order_by(FlashSale.created_at.desc())
             .all()
         )
 
@@ -205,3 +177,4 @@ class SellerRepository:
 
         for v in variants:
             db.session.delete(v)
+

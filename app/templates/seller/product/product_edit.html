@@ -94,7 +94,7 @@ onclick="deleteImage('{{ img.image_url }}', this)"
 <div class="shipping-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
 
 <div class="form-group">
-<label>Cân nặng (kg)</label>
+<label>Cân nặng (g)</label>
 <input type="number" name="weight" value="{{ variants[0].weight or '' if variants else '' }}">
 </div>
 
@@ -225,12 +225,17 @@ Tạo phân loại
 
 {% for v in variants %}
 <tr>
-
 <td>
 
 {% if v.image_url %}
-<img src="{{ v.image_url }}" width="60">
-<input type="hidden" name="variant_old_image[]" value="{{ v.image_url }}">
+<div class="image-item">
+
+<img src="{{ v.image_url }}">
+
+<input type="hidden"
+name="variant_old_image[]"
+value="{{ v.image_url }}">
+
 <button
 type="button"
 class="delete-img"
@@ -238,6 +243,8 @@ onclick="deleteImage('{{ v.image_url }}', this)"
 >
 ×
 </button>
+
+</div>
 
 {% else %}
 <input type="hidden" name="variant_old_image[]" value="">

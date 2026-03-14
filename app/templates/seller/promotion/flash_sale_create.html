@@ -1,0 +1,129 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block styles %}
+<link rel="stylesheet"
+href="{{ url_for('static', filename='css/seller_promotion.css') }}">
+{% endblock %}
+
+{% block seller_content %}
+
+<div class="promotion-box">
+
+<h2>Tạo Flash Sale</h2>
+
+<form class="seller-form">
+
+<!-- PRODUCT SELECT -->
+
+<label class="section-title">Chọn sản phẩm</label>
+
+<div class="product-grid">
+
+{% for p in products %}
+
+<div class="product-box">
+
+<label>
+<input type="checkbox"
+class="productCheck"
+value="{{ p.id }}">
+
+<strong>{{ p.name }}</strong>
+</label>
+
+<div id="variantBox-{{ p.id }}" class="variant-box"></div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+<label class="select-all">
+<input type="checkbox" id="selectAllVariants">
+Chọn tất cả
+</label>
+
+
+<!-- PRICE PANEL -->
+
+<div class="flash-price-panel">
+
+<div class="price-row">
+<label>Giá gốc</label>
+
+<input
+type="text"
+id="originPrice"
+readonly
+class="price-input">
+</div>
+
+<div class="price-row">
+<label>Giảm (%)</label>
+
+<input
+type="number"
+id="discountPercentInput"
+class="price-input">
+</div>
+
+</div>
+
+<!-- STOCK -->
+
+<div class="stock-panel">
+
+<label>Số lượng Flash Sale</label>
+
+<input type="number"
+id="stock"
+placeholder="Nhập số lượng"
+required>
+
+<div id="stockInfo" class="stock-info">
+Tồn kho: -
+</div>
+
+</div>
+
+
+<!-- TIME -->
+
+<div class="time-panel">
+
+<label>Bắt đầu</label>
+
+<input type="datetime-local"
+name="start_time"
+required>
+
+<label>Kết thúc</label>
+
+<input type="datetime-local"
+name="end_time"
+required>
+
+</div>
+
+
+<button type="button"
+class="btn btn--primary"
+onclick="createFlashSale()">
+
+Tạo Flash Sale
+
+</button>
+
+</form>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="{{ url_for('static', filename='js/promotion/promotion_common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/promotion/flash_sale.js') }}"></script>
+
+{% endblock %}

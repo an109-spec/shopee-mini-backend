@@ -155,9 +155,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-const uploadBox = document.getElementById("uploadArea")
+const uploadBox =
+document.getElementById("uploadArea") ||
+document.getElementById("uploadBox")
+
+const preview =
+document.getElementById("previewImages") ||
+document.getElementById("preview")
+
 const imageInput = document.getElementById("imageInput")
-const preview = document.getElementById("previewImages")
 const thumbnailInput = document.getElementById("thumbnailIndex")
 
 if(!uploadBox || !imageInput || !preview) return
@@ -262,7 +268,6 @@ function renderPreview(){
 }
 
 })
-
 
 /* ===============================
    Variant dynamic
@@ -507,7 +512,7 @@ textBox.innerText = numberToVietnamese(value)
 document.addEventListener("DOMContentLoaded", () => {
 
 const checkboxes = document.querySelectorAll(
-'input[name="category_ids[]"]'
+'input[name="category_id"], input[name="category_ids[]"]'
 )
 
 checkboxes.forEach(box => {
@@ -516,7 +521,7 @@ box.addEventListener("change", () => {
 
 let checked =
 document.querySelectorAll(
-'input[name="category_ids[]"]:checked'
+'input[name="category_id"]:checked, input[name="category_ids[]"]:checked'
 )
 
 if(checked.length > 3){
@@ -529,6 +534,7 @@ alert("Chỉ được chọn tối đa 3 danh mục")
 })
 
 })
+
 })
 const bulkPrice = document.getElementById("bulkPrice")
 

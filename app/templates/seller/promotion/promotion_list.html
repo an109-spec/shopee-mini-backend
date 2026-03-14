@@ -1,0 +1,102 @@
+{% extends "seller/layout_seller.html" %}
+{% block styles %}
+<link rel="stylesheet"
+href="{{ url_for('static', filename='css/seller_promotion.css') }}">
+{% endblock %}
+{% block seller_content %}
+
+<h2>Promotions</h2>
+
+<a class="btn btn--primary" href="/seller/promotions/create">
++ Tạo chương trình
+</a>
+
+<table class="table">
+
+<tr>
+<th>ID</th>
+<th>Tên CT</th>
+<th>phân loại</th>
+<th>Giảm</th>
+<th>Bắt đầu</th>
+<th>Kết thúc</th>
+<th>Countdown</th>
+<th>Trạng thái</th>
+<th>Action</th>
+</tr>
+
+{% for p in promotions %}
+
+<tr>
+
+<td>{{ p.id }}</td>
+<td>{{ p.name }}</td>
+
+<td class="variant-cell">
+<div class="product-name">{{ p.variant.product.name }}</div>
+<div class="variant-info">
+{{ p.variant.get_attr('size') }}
+{{ p.variant.get_attr('color') }}
+</div>
+</td>
+
+<td>
+<div class="price-old">
+{{ p.variant.price }}đ
+</div>
+<div class="price-new">
+{{ (p.variant.price * (100 - p.discount_percent) / 100) | int }}đ
+</div>
+</td>
+<td>{{ p.start_time }}</td>
+<td>{{ p.end_time }}</td>
+
+
+<td>
+<span class="countdown"
+data-time="{{ p.end_time.timestamp() }}">
+</span>
+</td>
+
+<td>
+{% if p.start_time > now %}
+<span class="status status--pending">Sắp chạy</span>
+
+{% elif p.end_time < now %}
+<span class="status status--off">Đã kết thúc</span>
+
+{% else %}
+<span class="status status--active">Đang chạy</span>
+
+{% set diff = (p.end_time - now).total_seconds() %}
+{% if diff < 86400 and diff > 0 %}
+<span class="status status--ending">Sắp hết hạn</span>
+
+{% endif %}
+{% endif %}
+</td>
+
+<td class="action-cell">
+
+<a class="btn-action btn-edit"
+href="/seller/promotions/{{ p.id }}/edit">
+Edit
+</a>
+
+<a class="btn-action btn-delete"
+href="/seller/promotions/{{ p.id }}/delete">
+Delete
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/seller_promotion.js') }}"></script>
+{% endblock %}

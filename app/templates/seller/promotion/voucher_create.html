@@ -1,0 +1,45 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block seller_content %}
+
+<h2>Tạo Voucher</h2>
+
+<div class="promotion-box">
+
+<label>Code</label>
+<input id="code">
+
+<label>Discount Type</label>
+<select id="type">
+
+<option value="percent">
+Percent
+</option>
+
+<option value="fixed">
+Fixed
+</option>
+
+</select>
+
+<label>Value</label>
+<input type="number" id="value">
+
+<label>Quantity</label>
+<input type="number" id="quantity">
+
+<label>Min Order</label>
+<input type="number" id="min">
+
+<label>Expire</label>
+<input type="datetime-local" id="expire">
+
+<button onclick="createVoucher()">
+Create Voucher
+</button>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/promotion/voucher.js') }}"></script>
+
+{% endblock %}

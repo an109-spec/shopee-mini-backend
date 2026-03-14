@@ -1,10 +1,8 @@
 from app.extensions import db
-from app.common.exceptions import ValidationError, AppException
-from app.models import Shop, Product, ProductImage
+from app.common.exceptions import ValidationError
+from app.models import Shop
 from .dto import CreateShopDTO, ShippingSetupDTO
 from slugify import slugify
-from decimal import Decimal
-from .repository import SellerRepository
 
 class SellerService:
     @staticmethod
@@ -34,10 +32,7 @@ class SellerService:
 
         if email_query.first() or phone_query.first():
             raise ValidationError("Email hoặc số điện thoại đã tồn tại")
-        print("EMAIL:", normalized_email)
-        print("PHONE:", normalized_phone)
-        print("EMAIL FOUND:", email_query.first())
-        print("PHONE FOUND:", phone_query.first())
+
     @staticmethod
     def register_shop(user, dto: CreateShopDTO):
         SellerService._validate_step_1(dto)

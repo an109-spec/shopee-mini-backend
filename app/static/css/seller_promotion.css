@@ -1,0 +1,301 @@
+.promotion-box{
+background:#fff;
+padding:20px;
+border-radius:8px;
+margin-bottom:20px;
+border:1px solid #eee;
+}
+
+.promotion-table{
+width:100%;
+border-collapse:collapse;
+}
+
+.promotion-table th,
+.promotion-table td{
+padding:10px;
+border-bottom:1px solid #eee;
+}
+.variant-box{
+margin-top:10px;
+padding-top:8px;
+border-top:1px dashed #ddd;
+}
+
+
+.variant-list{
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+}
+
+.variant-item:hover{
+background:#ffe9dc;
+}
+
+.product-box > label{
+font-weight:600;
+cursor:pointer;
+display:flex;
+align-items:center;
+gap:6px;
+}
+.product-box{
+border:1px solid #eee;
+padding:12px;
+border-radius:8px;
+background:#fff;
+transition:0.2s;
+}
+.product-box:hover{
+border-color:#ff6a00;
+box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+.variant-title{
+font-size:13px;
+color:#666;
+margin-bottom:6px;
+}
+
+.variant-item{
+display:flex;
+align-items:center;
+gap:4px;
+background:#f6f6f6;
+padding:4px 8px;
+border-radius:6px;
+font-size:13px;
+cursor:pointer;
+}
+.variant-empty{
+font-size:13px;
+color:#999;
+margin-left:20px;
+}
+.product-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+gap:16px;
+margin-top:15px;
+}
+/* ===== TABLE ===== */
+
+.table{
+width:100%;
+border-collapse:collapse;
+background:#fff;
+border-radius:10px;
+overflow:hidden;
+box-shadow:0 4px 14px rgba(0,0,0,0.06);
+}
+
+.table th{
+background:#fafafa;
+padding:14px;
+font-size:14px;
+font-weight:600;
+text-align:left;
+border-bottom:1px solid #eee;
+}
+
+.table td{
+padding:14px;
+font-size:14px;
+border-bottom:1px solid #f2f2f2;
+}
+
+.table tr:hover{
+background:#fcfcfc;
+}
+
+
+/* ===== STATUS BADGE ===== */
+
+.status{
+display:inline-flex;
+align-items:center;
+gap:6px;
+padding:4px 12px;
+border-radius:20px;
+font-size:13px;
+font-weight:600;
+}
+
+/* Đang chạy */
+
+.status::before{
+content:"";
+width:8px;
+height:8px;
+border-radius:50%;
+}
+.status--active{
+color:#16a34a;
+background:#ecfdf5;
+border:1px solid #bbf7d0;
+}
+.status--active::before{
+background:#16a34a;
+}
+/* Tắt */
+
+.status--off{
+color:#dc2626;
+background:#fef2f2;
+border:1px solid #fecaca;
+}
+.status--off::before{
+background:#dc2626;
+}
+/* ===== ACTION ===== */
+
+.table a{
+font-size:13px;
+text-decoration:none;
+margin-right:8px;
+}
+
+.table a:first-child{
+color:#2563eb;
+}
+
+.table a:last-child{
+color:#dc2626;
+}
+
+.product-name{
+font-weight:600;
+color:#333;
+}
+.variant-info{
+font-size:12px;
+color:#777;
+margin-top:3px;
+}
+.btn-action{
+padding:5px 10px;
+border-radius:6px;
+font-size:12px;
+text-decoration:none;
+font-weight:500;
+margin-right:6px;
+}
+.btn-edit{
+background:#eff6ff;
+color:#2563eb;
+}
+.btn-delete{
+background:#fef2f2;
+color:#dc2626;
+}
+
+.btn-delete:hover{
+background:#fee2e2;
+}
+
+.btn-edit:hover{
+background:#dbeafe;
+}
+
+.btn--primary{
+display:inline-block;
+margin-bottom:14px;
+padding:8px 14px;
+border-radius:6px;
+background:#ff6a00;
+color:#fff;
+font-weight:600;
+text-decoration:none;
+}
+
+.btn--primary:hover{
+background:#e85d00;
+}
+.status--pending{
+color:#d97706;
+background:#fff7ed;
+border:1px solid #fdba74;
+}
+.status--pending::before{
+background:#f97316;
+}
+.price-old{
+text-decoration:line-through;
+font-size:12px;
+color:#999;
+}
+
+.price-new{
+color:#e11d48;
+font-weight:600;
+}
+.status--ending{
+color:#c2410c;
+background:#fff7ed;
+border:1px solid #fdba74;
+}
+.section-title{
+font-weight:600;
+margin-top:10px;
+margin-bottom:10px;
+}
+
+.select-all{
+margin-top:10px;
+display:block;
+}
+
+.flash-price-panel{
+margin-top:20px;
+padding:15px;
+border:1px solid #eee;
+border-radius:8px;
+background:#fafafa;
+}
+
+.price-row{
+display:flex;
+align-items:center;
+gap:10px;
+margin-bottom:10px;
+}
+
+.price-row label{
+width:100px;
+font-weight:600;
+}
+
+.price-input{
+flex:1;
+padding:8px;
+border:1px solid #ddd;
+border-radius:6px;
+}
+
+.stock-panel{
+margin-top:20px;
+padding:15px;
+border:1px solid #eee;
+border-radius:8px;
+background:#fff;
+}
+
+.stock-info{
+margin-top:5px;
+font-size:13px;
+color:#666;
+}
+
+.time-panel{
+margin-top:20px;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+}
+
+.progress-bar{
+height:8px;
+background:#ff6a00;
+border-radius:6px;
+}

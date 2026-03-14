@@ -4,7 +4,7 @@ from decimal import Decimal
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.models import Category, FlashSale, OrderItem, Product
+from app.models import Category, FlashSale, OrderItem, Product, ProductVariant
 
 
 class HomeService:
@@ -142,14 +142,20 @@ class HomeService:
             flash_cards = []
             flash_end = None
             for sale in flash_sales:
-                product = Product.query.get(sale.product_id)
+                variant = ProductVariant.query.get(sale.variant_id)
+                if not variant:
+                    continue
+
+                product = Product.query.get(variant.product_id)
                 if not product:
                     continue
                 sold_count = sale.sold_count or 0
+                sale_price = variant.price * (1 - sale.discount_percent / 100)
                 flash_cards.append(
                     {
                         **HomeService._product_card_payload(product, sold_count=sold_count),
-                        "sale_price": HomeService._to_float(sale.discount_price),
+                        "sale_price": HomeService._to_float(sale_price),
+                        "discount_percent": sale.discount_percent
                     }
                 )
                 if flash_end is None or sale.end_time < flash_end:
