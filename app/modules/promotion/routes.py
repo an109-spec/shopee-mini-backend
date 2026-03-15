@@ -2,7 +2,7 @@ from flask import jsonify, request, redirect
 from datetime import datetime, timezone
 from . import promotion_bp
 from .service import FlashSaleService, VoucherService, PromotionService
-from flask import render_template
+
 @promotion_bp.route("/api/promotion/create", methods=["POST"])
 def create_promotion():
 

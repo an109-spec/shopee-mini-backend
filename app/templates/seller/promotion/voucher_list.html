@@ -11,14 +11,17 @@ href="/seller/vouchers/create">
 
 </a>
 
-<table>
+<table class="table">
 
 <tr>
 
-<th>Code</th>
-<th>Discount</th>
-<th>Min Order</th>
-<th>Expire</th>
+<th>CODE</th>
+<th>DISCOUNT</th>
+<th>MIN ORDER</th>
+<th>TIME</th>
+<th>USED</th>
+<th>STATUS</th>
+<th>ACTION</th>
 
 </tr>
 
@@ -28,16 +31,82 @@ href="/seller/vouchers/create">
 
 <td>{{ v.code }}</td>
 
-<td>{{ v.discount_value }}</td>
+<td>
 
-<td>{{ v.min_order_amount }}</td>
+{% if v.discount_type == "percent" %}
+{{ v.discount_value }}%
+{% else %}
+{{ "{:,.0f}".format(v.discount_value) }}đ
+{% endif %}
 
-<td>{{ v.expired_at }}</td>
+</td>
+
+<td>{{ v.min_order_value }}</td>
+
+<td>
+
+{{ v.start_time.strftime("%d/%m") }}
+→
+{{ v.end_time.strftime("%d/%m") }}
+
+</td>
+
+<td>
+
+{% if v.usage_limit > 0 %}
+{% set percent = (v.used_count / v.usage_limit) * 100 %}
+{% else %}
+{% set percent = 0 %}
+{% endif %}
+
+{{ v.used_count }}/{{ v.usage_limit }}
+
+<div class="progress-bar"
+style="width:{{ percent }}%">
+</div>
+
+</td>
+
+<td>
+
+{% if not v.is_active %}
+<span class="status status--off">Off</span>
+
+{% elif v.end_time < now %}
+<span class="status status--off">Expired</span>
+
+{% elif v.start_time > now %}
+<span class="status status--pending">Upcoming</span>
+
+{% else %}
+<span class="status status--active">Active</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+<a class="btn-action btn-edit"
+href="/seller/vouchers/{{ v.id }}/edit">
+Edit
+</a>
+
+<a class="btn-action btn-edit"
+href="/seller/vouchers/{{ v.id }}/toggle">
+On/Off
+</a>
+
+<a class="btn-action btn-delete"
+href="/seller/vouchers/{{ v.id }}/delete">
+Delete
+</a>
+
+</td>
 
 </tr>
 
 {% endfor %}
-
 </table>
 
 {% endblock %}

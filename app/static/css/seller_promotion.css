@@ -1,8 +1,8 @@
 .promotion-box{
-background:#fff;
+max-width:750px;
 padding:20px;
+background:#fff;
 border-radius:8px;
-margin-bottom:20px;
 border:1px solid #eee;
 }
 
@@ -298,4 +298,89 @@ gap:10px;
 height:8px;
 background:#ff6a00;
 border-radius:6px;
+transition:width .3s ease;
+}
+
+
+/* =========================
+VOUCHER FORM
+========================= */
+
+.promotion-box form{
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+
+.promotion-box label{
+font-size:13px;
+font-weight:600;
+color:#555;
+margin-top:6px;
+}
+
+.promotion-box input,
+.promotion-box select{
+
+width:100%;
+padding:8px 10px;
+
+border:1px solid #ddd;
+border-radius:6px;
+
+font-size:14px;
+
+transition:0.2s;
+
+}
+
+.promotion-box input:focus,
+.promotion-box select:focus{
+
+border-color:#ff6a00;
+outline:none;
+box-shadow:0 0 0 2px rgba(255,106,0,0.15);
+
+}
+
+
+/* CODE ROW */
+
+.promotion-box .code-row{
+display:flex;
+gap:10px;
+}
+
+.promotion-box button{
+cursor:pointer;
+}
+
+
+/* GENERATE BUTTON */
+
+.promotion-box button[type="button"]{
+
+padding:7px 12px;
+
+background:#2563eb;
+color:white;
+
+border:none;
+border-radius:6px;
+
+font-size:13px;
+
+}
+
+.promotion-box button[type="button"]:hover{
+background:#1d4ed8;
+}
+.money-preview{
+
+font-size:13px;
+color:#a3dcac;
+
+margin-top:4px;
+font-weight:600;
+
 }

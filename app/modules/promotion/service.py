@@ -105,28 +105,49 @@ class PromotionService:
 class VoucherService:
 
     @staticmethod
-    def use_voucher(voucher):
+    def list_vouchers(shop_id):
+        return Voucher.query.filter_by(shop_id=shop_id).all()
 
-        voucher.used_quantity += 1
 
-        db.session.commit()
     @staticmethod
     def create_voucher(
+        shop_id,
+        name,
         code,
         discount_type,
         discount_value,
-        quantity,
-        min_order,
-        expired_at
+        min_order_value,
+        usage_limit,
+        start_time,
+        end_time
     ):
 
+        # tránh trùng code
+        exists = Voucher.query.filter_by(code=code).first()
+        if exists:
+            raise Exception("Voucher code đã tồn tại")
+        if start_time >= end_time:
+            raise Exception("Thời gian voucher không hợp lệ")
+
+        if discount_type == "percent":
+            if discount_value <= 0 or discount_value > 90:
+                raise Exception("Percent không hợp lệ")
+
+        if discount_value <= 0:
+            raise Exception("Discount phải > 0")
+
         voucher = Voucher(
+            shop_id=shop_id,
+            name=name,
             code=code,
             discount_type=discount_type,
             discount_value=discount_value,
-            quantity=quantity,
-            min_order_amount=min_order,
-            expired_at=expired_at,
+            min_order_value=min_order_value,
+            usage_limit=usage_limit,
+            used_count=0,
+            start_time=start_time,
+            end_time=end_time,
+            is_active=True
         )
 
         db.session.add(voucher)
@@ -136,29 +157,87 @@ class VoucherService:
 
 
     @staticmethod
-    def list_vouchers():
+    def update_voucher(
+        voucher_id,
+        name,
+        code,
+        discount_type,
+        discount_value,
+        min_order_value,
+        usage_limit,
+        start_time,
+        end_time
+    ):
 
-        return Voucher.query.order_by(
-            Voucher.created_at.desc()
-        ).all()
+        voucher = Voucher.query.get(voucher_id)
+
+        if not voucher:
+            raise Exception("Voucher không tồn tại")
+
+        voucher.name = name
+        voucher.code = code
+        voucher.discount_type = discount_type
+        voucher.discount_value = discount_value
+        voucher.min_order_value = min_order_value
+        voucher.usage_limit = usage_limit
+        voucher.start_time = start_time
+        voucher.end_time = end_time
+
+        db.session.commit()
+
+        return voucher
+
+
+    @staticmethod
+    def delete_voucher(voucher_id):
+
+        voucher = Voucher.query.get(voucher_id)
+
+        if not voucher:
+            return
+
+        db.session.delete(voucher)
+        db.session.commit()
+
+
+    @staticmethod
+    def toggle_voucher(voucher_id):
+
+        voucher = Voucher.query.get(voucher_id)
+
+        if not voucher:
+            return
+
+        voucher.is_active = not voucher.is_active
+
+        db.session.commit()
+
 
     @staticmethod
     def validate_voucher(code):
 
-        voucher = Voucher.query.filter_by(
-            code=code
-        ).first()
+        now = datetime.now(timezone.utc)
+
+        voucher = Voucher.query.filter_by(code=code).first()
 
         if not voucher:
             return None
 
-        if voucher.used_quantity >= voucher.quantity:
+        if not voucher.is_active:
             return None
 
-        if voucher.expired_at < datetime.now(timezone.utc):
+        if voucher.used_count >= voucher.usage_limit:
+            return None
+
+        if voucher.start_time > now:
+            return None
+
+        if voucher.end_time < now:
             return None
 
         return voucher
+    
+    
 class FlashSaleService:
     @staticmethod
     def increase_sold(variant_id, quantity):

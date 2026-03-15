@@ -107,17 +107,16 @@ window.createFlashSale = async function(){
 
 ///xóa flash sale
 
-const deletes = document.querySelectorAll("[data-delete]")
-deletes.forEach(btn => {
-btn.addEventListener("click", async function(e){
+document.addEventListener("click", async (e) => {
+const btn = e.target.closest("[data-delete]")
+if(!btn) return
 e.preventDefault()
 const ok = confirm("⚠ Bạn chắc chắn muốn xóa Flash Sale này?")
 if(!ok) return
-const url = this.dataset.url
+const url = btn.dataset.url
+if(!url) return
 try{
-const res = await fetch(url,{
-method:"POST"
-})
+const res = await fetch(url,{ method:"POST" })
 if(res.ok){
 alert("✅ Xóa thành công")
 window.location.reload()
@@ -131,7 +130,6 @@ alert("Server lỗi")
 })
 })
 
-})
 ///
 ///cập nhật flash sale
 ///

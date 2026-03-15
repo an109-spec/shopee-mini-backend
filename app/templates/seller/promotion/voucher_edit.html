@@ -1,0 +1,83 @@
+{% extends "seller/layout_seller.html" %}
+
+{% block seller_content %}
+
+<h2>Edit Voucher</h2>
+
+<form method="POST">
+
+<div class="promotion-box">
+
+<label>Tên chương trình</label>
+<input name="name" value="{{ voucher.name }}">
+
+<label>Voucher Code</label>
+<input name="code" value="{{ voucher.code }}">
+
+<label>Loại giảm</label>
+
+<select name="discount_type">
+
+<option value="percent"
+{% if voucher.discount_type=="percent" %}selected{% endif %}>
+%
+</option>
+
+<option value="amount"
+{% if voucher.discount_type=="amount" %}selected{% endif %}>
+Tiền
+</option>
+
+</select>
+
+<label>Giảm</label>
+
+<input
+type="number"
+name="discount_value"
+value="{{ voucher.discount_value }}"
+>
+
+<label>Đơn tối thiểu</label>
+
+<input
+type="number"
+name="min_order_value"
+value="{{ voucher.min_order_value }}"
+>
+
+<label>Số lượt dùng</label>
+
+<input
+type="number"
+name="usage_limit"
+value="{{ voucher.usage_limit }}"
+>
+
+<label>Bắt đầu</label>
+
+<input
+type="datetime-local"
+name="start_time"
+value="{{ voucher.start_time.strftime('%Y-%m-%dT%H:%M') }}"
+>
+
+<label>Kết thúc</label>
+
+<input
+type="datetime-local"
+name="end_time"
+value="{{ voucher.end_time.strftime('%Y-%m-%dT%H:%M') }}"
+>
+
+<br><br>
+
+<button class="btn btn--primary">
+Save
+</button>
+
+</div>
+
+</form>
+
+{% endblock %}

@@ -29,6 +29,8 @@ from app.modules.promotion.repository import FlashSaleRepository
 from app.models.product import ProductImage
 from app.modules.promotion.service import VoucherService, PromotionService
 from app.utils.time import utcnow
+from app.models.voucher import Voucher
+from datetime import datetime
 
 now = utcnow()
 def get_current_user():
@@ -794,7 +796,6 @@ def revenue_page():
         summary=summary,
     )
 
-
 @seller_bp.route("/shop-settings")
 @seller_required
 def shop_settings_page():
@@ -827,20 +828,6 @@ def become_seller():
 
     return redirect(url_for("seller.register_shop"))
 
-
-@seller_bp.route("/vouchers")
-@seller_required
-def voucher_page():
-
-    user = get_current_user()
-    shop = get_current_shop(user)
-
-    vouchers = VoucherService.list_vouchers(shop.id)
-
-    return render_template(
-        "seller/promotion/voucher_list.html",
-        vouchers=vouchers
-    )
 @seller_bp.route("/api/product/<int:product_id>/variants")
 @seller_required
 def get_variants(product_id):
@@ -874,3 +861,90 @@ def get_variants(product_id):
             })
 
     return jsonify(data)
+
+##########
+#        # 
+#VOUCHERS#
+#        #
+##########
+@seller_bp.route("/vouchers")
+@seller_required
+def voucher_page():
+
+    user = get_current_user()
+    shop = get_current_shop(user)
+
+    vouchers = VoucherService.list_vouchers(shop.id)
+
+    return render_template(
+        "seller/promotion/voucher_list.html",
+        vouchers=vouchers, 
+        now=utcnow()
+    )
+@seller_bp.route("/vouchers/create")
+@seller_required
+def voucher_create_page():
+
+    return render_template(
+        "seller/promotion/voucher_create.html"
+    )
+
+@seller_bp.route("/vouchers/create", methods=["POST"])
+@seller_required
+def voucher_create():
+
+    user = get_current_user()
+    shop = get_current_shop(user)
+
+    VoucherService.create_voucher(
+        shop_id=shop.id,
+        name=request.form["name"],
+        code=request.form["code"],
+        discount_type=request.form["discount_type"],
+        discount_value=int(request.form["discount_value"]),
+        min_order_value=int(request.form["min_order_value"]),
+        usage_limit=int(request.form["usage_limit"]),
+        start_time=datetime.fromisoformat(request.form["start_time"]),
+        end_time=datetime.fromisoformat(request.form["end_time"]),
+    )
+    return redirect("/seller/vouchers")
+
+@seller_bp.route("/vouchers/<int:voucher_id>/edit")
+@seller_required
+def voucher_edit_page(voucher_id):
+
+    voucher = Voucher.query.get_or_404(voucher_id)
+
+    return render_template(
+        "seller/promotion/voucher_edit.html",
+        voucher=voucher
+    )
+
+@seller_bp.route("/vouchers/<int:voucher_id>/edit", methods=["POST"])
+@seller_required
+def voucher_update(voucher_id):
+
+    VoucherService.update_voucher(
+        voucher_id=voucher_id,
+        name=request.form["name"],
+        code=request.form["code"],
+        discount_type=request.form["discount_type"],
+        discount_value=int(request.form["discount_value"]),
+        min_order_value=int(request.form["min_order_value"]),
+        usage_limit=int(request.form["usage_limit"]),
+        start_time=datetime.fromisoformat(request.form["start_time"]),
+        end_time=datetime.fromisoformat(request.form["end_time"]),
+    )
+    return redirect("/seller/vouchers")
+
+@seller_bp.route("/vouchers/<int:voucher_id>/delete")
+@seller_required
+def voucher_delete(voucher_id):
+    VoucherService.delete_voucher(voucher_id)
+    return redirect("/seller/vouchers")
+
+@seller_bp.route("/vouchers/<int:voucher_id>/toggle")
+@seller_required
+def voucher_toggle(voucher_id):
+    VoucherService.toggle_voucher(voucher_id)
+    return redirect("/seller/vouchers")

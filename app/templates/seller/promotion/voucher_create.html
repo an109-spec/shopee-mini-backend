@@ -1,45 +1,90 @@
 {% extends "seller/layout_seller.html" %}
-
+{% block styles %}
+<link rel="stylesheet"
+href="{{ url_for('static', filename='css/seller_promotion.css') }}">
+{% endblock %}
 {% block seller_content %}
 
 <h2>Tạo Voucher</h2>
 
+<form method="POST">
+
 <div class="promotion-box">
 
-<label>Code</label>
-<input id="code">
+<label>Tên chương trình</label>
+<input name="name" id="name">
 
-<label>Discount Type</label>
-<select id="type">
+<label>Voucher Code</label>
 
-<option value="percent">
-Percent
-</option>
+<div class="code-row">
+<input name="code" id="code">
+<button type="button" onclick="generateCode()">Generate Random</button>
+</div>
 
-<option value="fixed">
-Fixed
-</option>
+<label>Loại giảm</label>
 
+<select name="discount_type" id="discount_type">
+<option value="percent">%</option>
+<option value="amount">Tiền</option>
 </select>
 
-<label>Value</label>
-<input type="number" id="value">
+<label>Giảm</label>
+<input type="number" name="discount_value" id="discount_value">
+<div id="discount_text" class="money-text"></div>
 
-<label>Quantity</label>
-<input type="number" id="quantity">
+<label>Đơn tối thiểu</label>
+<input type="number" name="min_order_value" id="min_order_value">
+<div id="min_text" class="money-text"></div>
 
-<label>Min Order</label>
-<input type="number" id="min">
+<label>Số lượt sử dụng</label>
+<input type="number" name="usage_limit" id="usage_limit">
 
-<label>Expire</label>
-<input type="datetime-local" id="expire">
+<label>Bắt đầu</label>
+<input type="datetime-local" name="start_time" id="start_time">
 
-<button onclick="createVoucher()">
-Create Voucher
+<label>Kết thúc</label>
+<input type="datetime-local" name="end_time" id="end_time">
+
+<label>Chọn sản phẩm</label>
+<div class="product-grid">
+{% for p in products %}
+
+<div class="product-box collapsible">
+
+<input type="checkbox"
+class="productCheck"
+id="product-{{ p.id }}"
+value="{{ p.id }}">
+
+<label for="product-{{ p.id }}">
+<strong>{{ p.name }}</strong>
+</label>
+
+<div id="variantBox-{{ p.id }}" class="variant-box"></div>
+
+</div>
+
+{% endfor %}
+</div>
+<label>
+<input type="checkbox" id="selectAllVariants" > 
+Chọn tất cả
+</label>
+
+<br><br>
+
+<button type="button"
+class="btn btn--primary"
+onclick="createVoucher()">
+Tạo Voucher
 </button>
 
 </div>
 
-<script src="{{ url_for('static', filename='js/promotion/voucher.js') }}"></script>
+</form>
+{% endblock %}
 
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/promotion/promotion_common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/promotion/voucher.js') }}"></script>
 {% endblock %}
