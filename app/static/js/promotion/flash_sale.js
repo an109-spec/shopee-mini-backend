@@ -27,13 +27,17 @@ const stock=parseInt(document.getElementById("stock").value)
 const start=document.querySelector("[name='start_time']").value
 const end=document.querySelector("[name='end_time']").value
 
-if(stock > selectedVariantStock){
-alert("Số lượng flash sale vượt tồn kho")
+for(const v of variants){
+const stockVariant = parseInt(v.dataset.stock)
+if(stock > stockVariant){
+alert("Flash sale vượt tồn kho của variant: " + v.value)
+window.location.href="/seller/flash-sales"
 return
+}
 }
 
 for(const v of variants){
-const res = await fetch("/promotion/api/flash-sale/create",{
+const res = await fetch(FLASH_SALE_CREATE_URL,{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({

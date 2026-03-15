@@ -54,7 +54,7 @@ href="{{ url_for('static', filename='css/seller_promotion.css') }}">
 
 <td>
 <span class="countdown"
-data-time="{{ p.end_time.timestamp() }}">
+data-end="{{ p.end_time.timestamp() }}">
 </span>
 </td>
 
@@ -98,5 +98,5 @@ Delete
 
 {% endblock %}
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/seller_promotion.js') }}"></script>
+<script src="{{ url_for('static', filename='js/promotion/flash_sale_ui.js') }}"></script>
 {% endblock %}

@@ -6,19 +6,31 @@ sortFilter()
 
 function updateCountdown(){
 document.querySelectorAll(".countdown").forEach(el=>{
+
 const end = parseInt(el.dataset.end) * 1000
 const now = Date.now()
+
 let diff = end - now
+
 if(diff <= 0){
 el.innerText = "Ended"
 return
 }
 
-const h = Math.floor(diff/3600000)
-const m = Math.floor((diff%3600000)/60000)
-const s = Math.floor((diff%60000)/1000)
+const days = Math.floor(diff / (1000*60*60*24))
+diff %= (1000*60*60*24)
+
+const hours = Math.floor(diff / (1000*60*60))
+diff %= (1000*60*60)
+
+const minutes = Math.floor(diff / (1000*60))
+diff %= (1000*60)
+
+const seconds = Math.floor(diff / 1000)
+
 el.innerText =
-`${h}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`
+`${days}d ${hours}h ${minutes}m ${seconds}s`
+
 })
 }
 

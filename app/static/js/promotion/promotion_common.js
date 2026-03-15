@@ -64,7 +64,7 @@ const stock = parseInt(v.dataset.stock || 0)
 
 prices.push(price)
 stocks.push(stock)
-totalStock += stock
+totalStock += (v.stock - (v.flash_sale_used || 0))
 })
 
 selectedVariantStock = stocks.length ? Math.min(...stocks) : 0  // dùng cho validation

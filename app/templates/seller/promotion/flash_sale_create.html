@@ -122,7 +122,10 @@ Tạo Flash Sale
 {% endblock %}
 
 {% block scripts %}
-
+<script>
+const FLASH_SALE_CREATE_URL =
+"{{ url_for('promotion.create_flash_sale') }}";
+</script>
 <script src="{{ url_for('static', filename='js/promotion/promotion_common.js') }}"></script>
 <script src="{{ url_for('static', filename='js/promotion/flash_sale.js') }}"></script>
 

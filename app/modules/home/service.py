@@ -150,7 +150,7 @@ class HomeService:
                 if not product:
                     continue
                 sold_count = sale.sold_count or 0
-                sale_price = variant.price * (1 - sale.discount_percent / 100)
+                sale_price = variant.price * (Decimal(1) - Decimal(sale.discount_percent) / Decimal(100))
                 flash_cards.append(
                     {
                         **HomeService._product_card_payload(product, sold_count=sold_count),

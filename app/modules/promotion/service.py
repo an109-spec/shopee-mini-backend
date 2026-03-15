@@ -197,13 +197,32 @@ class FlashSaleService:
         stock_limit = int(stock_limit)
         # 1. kiểm tra variant tồn tại
         variant = ProductVariant.query.get(variant_id)
-        print("variant_id:", variant_id)
-        print("variant.stock:", variant.stock)
-        print("stock_limit:", stock_limit)
         if not variant:
             raise Exception("Variant không tồn tại")
-        if stock_limit <= 0 or stock_limit > variant.stock:
-                raise Exception("Flash sale stock vượt tồn kho sản phẩm")
+        # ===== TÍNH STOCK ĐÃ DÙNG CHO FLASH SALE =====
+        used_stock = db.session.query(
+            db.func.coalesce(db.func.sum(FlashSale.stock_limit), 0)
+        ).filter(
+            FlashSale.variant_id == variant_id,
+            FlashSale.is_active == True,
+            FlashSale.end_time >= datetime.now(timezone.utc)
+        ).scalar()
+
+        available_stock = variant.stock - used_stock
+
+        print("variant.stock:", variant.stock)
+        print("used_flash_sale_stock:", used_stock)
+        print("available_stock:", available_stock)
+        print("request_stock:", stock_limit)
+
+        # ===== VALIDATE =====
+        if stock_limit <= 0:
+            raise Exception("Stock flash sale phải > 0")
+
+        if stock_limit > available_stock:
+            raise Exception(
+                f"Flash sale vượt tồn kho. Còn lại {available_stock}"
+            )
         
 
         # 2. kiểm tra thời gian
