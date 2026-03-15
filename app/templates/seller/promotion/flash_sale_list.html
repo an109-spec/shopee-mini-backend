@@ -36,7 +36,7 @@ href="/seller/flash-sales/create">
 <th>ID</th>
 <th>Product</th>
 <th>Price</th>
-<th>Stock</th>
+<th>Stock_limit</th>
 <th>Sold</th>
 <th>Countdown</th>
 <th>Time</th>
@@ -166,15 +166,17 @@ data-end="{{ s.end_time.timestamp() }}">
 
 <td>
 
-<a href="/seller/flash-sales/edit/{{ s.id }}"
-class="btn-action btn-edit">
+<a class="btn-action btn-edit"
+href="/seller/flash-sales/{{ s.id }}/edit">
 Edit
 </a>
 
-<a href="/seller/flash-sales/delete/{{ s.id }}"
-class="btn-action btn-delete">
+<button
+class="btn-action btn-delete"
+data-url="/seller/flash-sales/{{ s.id }}/delete"
+data-delete>
 Delete
-</a>
+</button>
 
 </td>
 
@@ -190,4 +192,5 @@ Delete
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/promotion/flash_sale_ui.js') }}"></script>
+<script src="{{ url_for('static', filename='js/promotion/flash_sale.js') }}"></script>
 {% endblock %}

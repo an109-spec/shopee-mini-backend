@@ -1,25 +1,141 @@
-
+document.addEventListener("DOMContentLoaded",()=>{
 const flashInput = document.getElementById("flashPrice")
 if(flashInput){
 flashInput.addEventListener("input", function(){
-const flash = this.value
-if(!selectedVariantPrice) return
-const percent = Math.round(
-(1 - flash/selectedVariantPrice)*100
-)
-document.getElementById("discountPercentInput").value = percent
-})
+    const flash = this.value
+    if(!selectedVariantPrice) return
+    const percent = Math.round((1 - flash / selectedVariantPrice) * 100)
+    document.getElementById("discountPercentInput").value = percent
+  })
+}
+
+function buildStockAllocation(variantElements, totalStock){
+  const variants = Array.from(variantElements).map((el) => ({
+    id: el.value,
+    available: parseInt(el.dataset.stock || "0", 10),
+    stockLimit: 0,
+  }))
+
+  let remaining = totalStock
+
+  // chia đều trước
+  variants.forEach((variant, idx) => {
+    const variantsLeft = variants.length - idx
+    const target = Math.ceil(remaining / variantsLeft)
+    const allocated = Math.min(target, variant.available)
+    variant.stockLimit = allocated
+    remaining -= allocated
+  })
+
+  // dồn phần còn lại vào các variant còn sức chứa
+  if(remaining > 0){
+    for(const variant of variants){
+      if(remaining <= 0) break
+      const extraCapacity = variant.available - variant.stockLimit
+      if(extraCapacity <= 0) continue
+      const extra = Math.min(extraCapacity, remaining)
+      variant.stockLimit += extra
+      remaining -= extra
+    }
+  }
+
+if(remaining > 0){
+throw new Error("Không đủ tồn kho khả dụng để phân bổ số lượng Flash Sale")
+}
+
+  return variants.filter((v) => v.stockLimit > 0)
 }
 
 window.createFlashSale = async function(){
-const variants = document.querySelectorAll(
-"input[name='variant_ids[]']:checked"
-)
+  const variants = document.querySelectorAll("input[name='variant_ids[]']:checked")
 
-if(variants.length === 0){
-alert("Phải chọn ít nhất 1 phân loại")
-return
+  if(variants.length === 0){
+    alert("Phải chọn ít nhất 1 phân loại")
+    return
+  }
+
+  const percent = document.getElementById("discountPercentInput").value
+  const stock = parseInt(document.getElementById("stock").value, 10)
+
+  const start = document.querySelector("[name='start_time']").value
+  const end = document.querySelector("[name='end_time']").value
+
+  if(Number.isNaN(stock) || stock <= 0){
+    alert("Vui lòng nhập số lượng Flash Sale hợp lệ")
+    return
+  }
+
+  if(stock > selectedVariantStock){
+    alert("Số lượng flash sale vượt tồn kho")
+    return
+  }
+
+  let allocations
+  try {
+    allocations = buildStockAllocation(variants, stock)
+  } catch (err) {
+    alert(err.message)
+    return
+  }
+
+  for(const item of allocations){
+    const res = await fetch(FLASH_SALE_CREATE_URL, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        variant_id: item.id,
+        discount_percent: percent,
+        stock_limit: item.stockLimit,
+        start_time: start,
+        end_time: end,
+      }),
+    })
+
+    if(!res.ok){
+      let message = "Tạo flash sale thất bại"
+      try {
+        const payload = await res.json()
+        if(payload?.message) message = payload.message
+      } catch (_) {}
+      alert(message)
+      return
+    }
+  }
+
+  window.location.href = "/seller/flash-sales"
 }
+
+///xóa flash sale
+
+const deletes = document.querySelectorAll("[data-delete]")
+deletes.forEach(btn => {
+btn.addEventListener("click", async function(e){
+e.preventDefault()
+const ok = confirm("⚠ Bạn chắc chắn muốn xóa Flash Sale này?")
+if(!ok) return
+const url = this.dataset.url
+try{
+const res = await fetch(url,{
+method:"POST"
+})
+if(res.ok){
+alert("✅ Xóa thành công")
+window.location.reload()
+}else{
+alert("❌ Xóa thất bại")
+}
+}catch(err){
+console.error(err)
+alert("Server lỗi")
+}
+})
+})
+
+})
+///
+///cập nhật flash sale
+///
+async function updateFlashSale(id){
 
 const percent=document.getElementById("discountPercentInput").value
 const stock=parseInt(document.getElementById("stock").value)
@@ -27,33 +143,35 @@ const stock=parseInt(document.getElementById("stock").value)
 const start=document.querySelector("[name='start_time']").value
 const end=document.querySelector("[name='end_time']").value
 
-for(const v of variants){
-const stockVariant = parseInt(v.dataset.stock)
-if(stock > stockVariant){
-alert("Flash sale vượt tồn kho của variant: " + v.value)
-window.location.href="/seller/flash-sales"
-return
-}
-}
+const url = FLASH_UPDATE_URL.replace("0", id)
 
-for(const v of variants){
-const res = await fetch(FLASH_SALE_CREATE_URL,{
+const res = await fetch(url,{
+
 method:"POST",
-headers:{"Content-Type":"application/json"},
+
+headers:{
+"Content-Type":"application/json"
+},
+
 body:JSON.stringify({
-variant_id:v.value,
 discount_percent:percent,
 stock_limit:stock,
 start_time:start,
 end_time:end
 })
+
 })
-if(!res.ok){
-const text = await res.text()
-console.error(text)
-alert("Tạo flash sale thất bại")
-return
+
+if(res.ok){
+
+alert("Cập nhật thành công")
+
+window.location="/seller/flash-sales"
+
+}else{
+
+alert("Update thất bại")
+
 }
-}
-location.reload()
+
 }

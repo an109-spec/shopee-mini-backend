@@ -14,7 +14,7 @@ from flask import (
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from app.extensions import db
-from app.models import User, Product, Category, ProductVariant, Promotion
+from app.models import User, Product, Category, ProductVariant, FlashSale
 from app.common.security.permission import seller_required
 from app.common.exceptions import ValidationError, AppException
 from app.modules.product.service import ProductService
@@ -757,6 +757,28 @@ def flash_sale_create_page():
         products=products
     )
 
+@seller_bp.route("/flash-sales/<int:flash_id>/edit")
+@seller_required
+def flash_sale_edit_page(flash_id):
+    user = get_current_user()
+    shop = get_current_shop(user)
+    flash = FlashSale.query.get_or_404(flash_id)
+    products = Product.query.filter_by(shop_id=shop.id).all()
+    return render_template(
+        "seller/promotion/flash_sale_edit.html",
+        flash=flash,
+        products=products
+    )
+
+@seller_bp.route("/flash-sales/<int:flash_id>/delete", methods=["POST"])
+@seller_required
+def flash_sale_delete(flash_id):
+
+    FlashSaleRepository.delete_flash_sale(flash_id)
+
+    db.session.commit()
+
+    return {"success": True}
 
 @seller_bp.route("/revenue")
 @seller_required
@@ -822,19 +844,32 @@ def voucher_page():
 @seller_bp.route("/api/product/<int:product_id>/variants")
 @seller_required
 def get_variants(product_id):
+    from datetime import timezone
+    from app.models.flash_sale import FlashSale
 
     variants = ProductVariant.query.filter_by(
         product_id=product_id
     ).all()
-
+    now = datetime.now(timezone.utc)
     data = []
 
     for v in variants:
+        reserved = (
+            db.session.query(db.func.coalesce(db.func.sum(FlashSale.stock_limit - FlashSale.sold_count), 0))
+            .filter(
+                FlashSale.variant_id == v.id,
+                FlashSale.is_active == True,
+                FlashSale.end_time >= now,
+            )
+            .scalar()
+        )
+        available_stock = max(v.stock - int(reserved or 0), 0)
         data.append({
             "id": v.id,
             "size": v.get_attr("size"),
             "color": v.get_attr("color"),
-            "stock": v.stock,
+            "stock": available_stock,
+            "total_stock": v.stock,
             "price": float(v.price)
             })
 

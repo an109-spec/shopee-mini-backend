@@ -195,58 +195,40 @@ class FlashSaleService:
         variant_id = int(variant_id)
         discount_percent = int(discount_percent)
         stock_limit = int(stock_limit)
+
+        now = datetime.now(timezone.utc)
+        if start_time >= end_time:
+            raise Exception("Thời gian khuyến mãi không hợp lệ")
+        if end_time <= now:
+            raise Exception("Thời gian kết thúc phải lớn hơn hiện tại")
+
         # 1. kiểm tra variant tồn tại
         variant = ProductVariant.query.get(variant_id)
         if not variant:
             raise Exception("Variant không tồn tại")
-        # ===== TÍNH STOCK ĐÃ DÙNG CHO FLASH SALE =====
-        used_stock = db.session.query(
-            db.func.coalesce(db.func.sum(FlashSale.stock_limit), 0)
-        ).filter(
-            FlashSale.variant_id == variant_id,
-            FlashSale.is_active == True,
-            FlashSale.end_time >= datetime.now(timezone.utc)
-        ).scalar()
 
-        available_stock = variant.stock - used_stock
-
-        print("variant.stock:", variant.stock)
-        print("used_flash_sale_stock:", used_stock)
-        print("available_stock:", available_stock)
-        print("request_stock:", stock_limit)
-
-        # ===== VALIDATE =====
-        if stock_limit <= 0:
-            raise Exception("Stock flash sale phải > 0")
-
-        if stock_limit > available_stock:
-            raise Exception(
-                f"Flash sale vượt tồn kho. Còn lại {available_stock}"
+        # 2. kiểm tra stock khả dụng theo khung thời gian tạo mới
+        reserved_overlap = (
+            db.session.query(db.func.coalesce(db.func.sum(FlashSale.stock_limit - FlashSale.sold_count), 0))
+            .filter(
+                FlashSale.variant_id == variant_id,
+                FlashSale.is_active == True,
+                FlashSale.end_time >= start_time,
+                FlashSale.start_time <= end_time,
             )
-        
+            .scalar()
+        )
 
-        # 2. kiểm tra thời gian
-        now = datetime.now(timezone.utc)
+        available_stock = max(variant.stock - int(reserved_overlap or 0), 0)
 
-        if start_time >= end_time:
-            raise Exception("Thời gian khuyến mãi không hợp lệ")
-
-        if end_time <= now:
-            raise Exception("Thời gian kết thúc phải lớn hơn hiện tại")
+        if stock_limit <= 0 or stock_limit > available_stock:
+            raise Exception(
+                f"Flash sale vượt tồn kho của variant: {variant_id} (khả dụng: {available_stock})"
+            )
 
         # 3. kiểm tra discount hợp lệ
         if discount_percent <= 0 or discount_percent > 90:
             raise Exception("Discount percent không hợp lệ")
-
-        # 4. kiểm tra flash sale trùng
-        exist = FlashSale.query.filter(
-            FlashSale.variant_id == variant_id,
-            FlashSale.end_time >= start_time,
-            FlashSale.start_time <= end_time
-        ).first()
-
-        if exist:
-            raise Exception("Variant đã có flash sale trong khoảng thời gian này")
 
         # 5. tạo flash sale
         sale = FlashSale(
@@ -283,3 +265,66 @@ class FlashSaleService:
             FlashSale.start_time <= datetime.now(timezone.utc),
             FlashSale.end_time >= datetime.now(timezone.utc)
         ).all()
+    
+    @staticmethod
+    def update_flash_sale(
+        flash_id,
+        discount_percent,
+        stock_limit,
+        start_time,
+        end_time
+    ):
+
+        discount_percent = int(discount_percent)
+        stock_limit = int(stock_limit)
+
+        sale = FlashSale.query.get(flash_id)
+
+        if not sale:
+            raise Exception("Flash sale không tồn tại")
+
+        if start_time >= end_time:
+            raise Exception("Thời gian flash sale không hợp lệ")
+
+        if discount_percent <= 0 or discount_percent > 90:
+            raise Exception("Discount không hợp lệ")
+
+        variant = ProductVariant.query.get(sale.variant_id)
+
+        if not variant:
+            raise Exception("Variant không tồn tại")
+
+        if stock_limit < sale.sold_count:
+            raise Exception("Stock limit nhỏ hơn số đã bán")
+
+        reserved_overlap = (
+            db.session.query(
+                db.func.coalesce(
+                    db.func.sum(FlashSale.stock_limit - FlashSale.sold_count), 0
+                )
+            )
+            .filter(
+                FlashSale.variant_id == sale.variant_id,
+                FlashSale.id != sale.id,
+                FlashSale.is_active == True,
+                FlashSale.end_time >= start_time,
+                FlashSale.start_time <= end_time,
+            )
+            .scalar()
+        )
+
+        available_stock = max(variant.stock - int(reserved_overlap or 0), 0)
+
+        if stock_limit > available_stock:
+            raise Exception(
+                f"Stock limit vượt tồn kho khả dụng ({available_stock})"
+            )
+
+        sale.discount_percent = discount_percent
+        sale.stock_limit = stock_limit
+        sale.start_time = start_time
+        sale.end_time = end_time
+
+        db.session.commit()
+
+        return sale

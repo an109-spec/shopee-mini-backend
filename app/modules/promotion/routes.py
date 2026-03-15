@@ -114,4 +114,35 @@ def promotions():
     ])
 
 
+@promotion_bp.route("/api/flash-sale/<int:flash_id>/update", methods=["POST"])
+def update_flash_sale(flash_id):
 
+    data = request.get_json()
+
+    try:
+
+        start_time = datetime.fromisoformat(data["start_time"])
+        end_time = datetime.fromisoformat(data["end_time"])
+
+        if start_time.tzinfo is None:
+            start_time = start_time.replace(tzinfo=timezone.utc)
+
+        if end_time.tzinfo is None:
+            end_time = end_time.replace(tzinfo=timezone.utc)
+
+        FlashSaleService.update_flash_sale(
+            flash_id=flash_id,
+            discount_percent=int(data["discount_percent"]),
+            stock_limit=int(data["stock_limit"]),
+            start_time=start_time,
+            end_time=end_time,
+        )
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
